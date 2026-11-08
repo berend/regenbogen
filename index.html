@@ -138,8 +138,13 @@ body { padding:0; }
   </section>
   <section id="panel-spectrum" role="tabpanel" aria-labelledby="tab-spectrum" hidden>
     <div class="view-header"><h2>Ein Lichtstrahl – viele Farben</h2><span class="view-tag">Zwei Brechungen · eine Reflexion</span></div>
+    <div class="space-steps" role="group" aria-label="Darstellung der Farbwege">
+      <button id="spectrum-accurate" type="button" aria-pressed="true">Richtige Winkel</button>
+      <button id="spectrum-exaggerated" type="button" aria-pressed="false">Dispersion vergrößert</button>
+    </div>
     <svg id="spectrum-svg" class="diagram" role="img" aria-label="Weißes Licht trifft auf einen Wassertropfen. Die Farben werden unterschiedlich stark gebrochen, innen reflektiert und treten als Farbfächer aus."></svg>
-    <label class="check"><input id="spectrum-spread" type="checkbox" checked> Farbabstände zur Übersicht vergrößern</label>
+    <div class="space-tools" id="spectrum-angle-controls"><label for="spectrum-color">Winkel für</label><select id="spectrum-color"><option value="red">Rot</option><option value="orange">Orange</option><option value="yellow">Gelb</option><option value="green">Grün</option><option value="blue">Blau</option><option value="violet">Violett</option></select></div>
+    <div class="legend" id="spectrum-angle-values" aria-live="polite"></div>
     <div class="note" aria-live="polite"><p>Weißes Licht enthält alle Spektralfarben. Beim Eintritt in den Tropfen werden die Farben unterschiedlich stark gebrochen. Nach einer Reflexion im Inneren werden sie beim Austritt erneut gebrochen. So entsteht ein Farbfächer.</p><p id="spectrum-detail"></p></div>
   </section>
   <details><summary>Was das Modell zeigt · Quellen</summary><p>Das Tropfenmodell berechnet Strahlen mit dem Snelliusschen Brechungsgesetz und dem Reflexionsgesetz. Es zeigt den Weg mit einer inneren Reflexion und auf Wunsch zusätzlich den Weg mit zwei inneren Reflexionen. Beide Wege teilen sich den Eintritt und die erste Reflexion; an der nächsten Grenzfläche tritt ein Anteil aus und ein anderer wird nochmals reflektiert. An jeder Grenzfläche gibt es weitere reflektierte und durchgelassene Anteile. Die inneren Reflexionen sind Teilreflexionen, keine Totalreflexionen.</p><p>Verwendet werden kugelförmige Wassertropfen und gerundete Brechungsindizes von n ≈ 1,331 (Rot) bis 1,3435 (Violett). Die Winkel beziehen sich auf den Sonnengegenpunkt. Die Himmelsansicht verwendet eine stereografische Projektion und passt den Maßstab an den sichtbaren Ausschnitt an. Der Winkelradius bleibt dabei gleich. Die Tropfen in der zweiten Ansicht sind zur Erkennbarkeit vergrößert. Helligkeiten, Beugung, Polarisation und die Überlagerung aller Strahlen werden nicht simuliert.</p><p>Ansicht 03 zeigt die Farbwege gemeinsam in einem Tropfen. Die Farbabstände können zur Übersicht schematisch vergrößert werden; dabei lassen sich keine tatsächlichen Winkel ablesen. Ohne diese Vergrößerung gelten die genannten Brechungsindizes von Wasser. Gestrichelte Linien an den Strahlenden dienen nur der Zuordnung zu den Farbnamen.</p><p>In 3D wird der Kegelmantel aus Richtungen mit dem berechneten Regenbogenwinkel der gewählten Farbe konstruiert und perspektivisch projiziert. Der farbige Ring liegt zur Veranschaulichung in einer gewählten Entfernung; echte beitragende Tropfen können überall entlang dieser Richtungen liegen. Die Horizontebene geht durch das Auge und trennt obere und untere Blickrichtungen. Sie stellt keine Wand oder tatsächliche Regenschicht dar. Die Ansicht aus dem Auge zeigt Blickrichtungen stereografisch.</p><p>Hintergrund: <a href="https://weather.metoffice.gov.uk/learn-about/weather/optical-effects/rainbows" target="_blank" rel="noopener">Met Office: Rainbows</a> · <a href="https://www.hyperphysics.phy-astr.gsu.edu/hbase/atmos/rbowpri.html" target="_blank" rel="noopener">Georgia State University: Primary Rainbow</a> · <a href="https://www.eoas.ubc.ca/books/Practical_Meteorology/" target="_blank" rel="noopener">UBC: Practical Meteorology</a></p></details>
@@ -157,7 +162,7 @@ body { padding:0; }
     {id:'blue',name:'Blau',hex:'#479fec',n:1.340},
     {id:'violet',name:'Violett',hex:'#a17af5',n:1.3435}
   ];
-  const state = {view:root.dataset.start || 'space',impact:.86,color:'all',spaceColor:'all',spectrumSpread:true,normals:true,dropSecondary:false,animate:false,eye:'all',sun:12,full:false,secondary:false,spaceStep:3,sweep:360,arcPosition:.5,camera:'left',yaw:-55,pitch:22};
+  const state = {view:root.dataset.start || 'space',impact:.86,color:'all',spaceColor:'all',spectrumSpread:false,spectrumColor:'red',normals:true,dropSecondary:false,animate:false,eye:'all',sun:12,full:false,secondary:false,spaceStep:3,sweep:360,arcPosition:.5,camera:'left',yaw:-55,pitch:22};
   const degrees = n => (n / rad).toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1}) + '°';
   const point = p => p.map(v => v.toFixed(2)).join(',');
   const line = (a,b,stroke,extra='') => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${stroke}" ${extra}/>`;
@@ -524,15 +529,16 @@ body { padding:0; }
 
   function drawSpectrum() {
     const svg=$('spectrum-svg'),w=Math.max(280,Math.round(root.getBoundingClientRect().width));
-    const radius=Math.min(155,w*.27),center=[w*.64,radius+100],rotation=12*rad;
+    const radius=Math.min(155,w*.27),center=[w*.64,radius+100],rotation=12*rad,impact=.86;
+    const reference=colors.find(col=>col.id===state.spectrumColor)||colors[0];
     const rotate=p=>[p[0]*Math.cos(rotation)-p[1]*Math.sin(rotation),p[0]*Math.sin(rotation)+p[1]*Math.cos(rotation)];
     const map=p=>rotate(p).map((v,j)=>center[j]+radius*v);
     // Keep the same entry point for all colors. Exaggerate dispersion only in this schematic view.
     const rays=colors.map(col=>{
       const n=colors[0].n+(col.n-colors[0].n)*(state.spectrumSpread?16:1);
-      const ray=trace(n,.98),entry=map(ray.entry),reflection=map(ray.reflection),exit=map(ray.exit),direction=rotate(ray.outgoing);
+      const ray=trace(n,impact),entry=map(ray.entry),reflection=map(ray.reflection),exit=map(ray.exit),direction=rotate(ray.outgoing);
       const tip=[88,exit[1]+(88-exit[0])/direction[0]*direction[1]];
-      return {col,entry,reflection,exit,tip};
+      return {col,ray,entry,reflection,exit,tip};
     }).reverse();
     // Separate color names without changing the directions of the rays.
     const labels=rays.map(ray=>ray.tip[1]);
@@ -546,7 +552,7 @@ body { padding:0; }
     s+=text(center[0]-radius*.22,center[1],'Wassertropfen','text-anchor="middle" class="soft"');
     rays.forEach((ray,j)=>{
       const {col,entry,reflection,exit,tip}=ray;
-      s+=`<path d="M ${point(entry)} L ${point(reflection)} L ${point(exit)} L ${point(tip)}" stroke="${col.hex}" stroke-width="1.7" class="ray" data-spectrum-color="${col.id}"/>`;
+      s+=`<path d="M ${point(entry)} L ${point(reflection)} L ${point(exit)} L ${point(tip)}" stroke="${col.hex}" stroke-width="${!state.spectrumSpread&&col===reference?2.5:1.7}" class="ray" data-spectrum-color="${col.id}"/>`;
       const arrowTip=[tip[0]+12,tip[1]+(exit[1]-tip[1])*12/(exit[0]-tip[0])];
       s+=arrow([arrowTip[0]+12,arrowTip[1]+(exit[1]-tip[1])*12/(exit[0]-tip[0])],arrowTip,col.hex,1.7);
       s+=line(tip,[69,labels[j]],col.hex,'stroke-width="1" stroke-dasharray="2 3" opacity=".7"');
@@ -559,11 +565,36 @@ body { padding:0; }
     const tip=[start[0]+(entry[0]-start[0])*.55,start[1]+(entry[1]-start[1])*.55];
     s+=arrow([tip[0]-20*Math.cos(rotation),tip[1]-20*Math.sin(rotation)],tip,'var(--foreground)',2.8);
     s+=text((start[0]+entry[0])/2,(start[1]+entry[1])/2-13,'weißes Licht','text-anchor="middle"');
+    if(!state.spectrumSpread) {
+      const selected=rays.find(ray=>ray.col===reference),entry=selected.entry,exit=selected.exit;
+      const i=Math.asin(impact),r=Math.asin(impact/reference.n);
+      const normal=Math.atan2(selected.ray.entry[1],selected.ray.entry[0])+rotation;
+      s+=line([entry[0]+56*Math.cos(normal),entry[1]+56*Math.sin(normal)],[entry[0]-56*Math.cos(normal),entry[1]-56*Math.sin(normal)],'var(--muted-foreground)','class="normal" data-spectrum-normal');
+      const reverse=Math.PI+rotation;
+      s+=line([exit[0]+100*Math.cos(reverse),exit[1]+100*Math.sin(reverse)],exit,'var(--muted-foreground)','stroke-dasharray="3 4" data-spectrum-reverse');
+      const angles=[
+        {id:'i',vertex:entry,start:reverse,end:normal+2*Math.PI,value:i,radius:27,stroke:'var(--foreground)',labelRadius:45},
+        {id:'r',vertex:entry,start:normal+Math.PI,end:normal+Math.PI-r,value:r,radius:27,stroke:reference.hex,labelRadius:45},
+        {id:'θ',vertex:exit,start:reverse,end:reverse-selected.ray.theta,value:selected.ray.theta,radius:32,stroke:reference.hex,labelRadius:53}
+      ];
+      angles.forEach(a=>{
+        const ends=[a.start,a.end].map(v=>[a.vertex[0]+a.radius*Math.cos(v),a.vertex[1]+a.radius*Math.sin(v)]);
+        s+=`<path d="M ${point(ends[0])} A ${a.radius} ${a.radius} 0 0 ${a.end>a.start?1:0} ${point(ends[1])}" fill="none" stroke="${a.stroke}" stroke-width="1.6" data-spectrum-angle="${a.id}" data-angle-degrees="${a.value/rad}"/>`;
+        const mid=(a.start+a.end)/2;
+        s+=text(a.vertex[0]+a.labelRadius*Math.cos(mid),a.vertex[1]+a.labelRadius*Math.sin(mid)+4,a.id,`text-anchor="middle" font-style="italic" data-spectrum-angle-label="${a.id}"`);
+      });
+    }
     svg.innerHTML=s;
-    svg.setAttribute('aria-label',`Ein gemeinsamer weißer Lichtstrahl tritt in einen Wassertropfen ein. Sechs Farbwege von Rot bis Violett zeigen Brechung, eine innere Reflexion und erneute Brechung beim Austritt. Die Farbwege sind direkt beschriftet. ${state.spectrumSpread?'Die Farbabstände sind schematisch vergrößert.':'Die Strahlen sind mit den Brechungsindizes von Wasser berechnet.'}`);
+    $('spectrum-accurate').setAttribute('aria-pressed',String(!state.spectrumSpread));
+    $('spectrum-exaggerated').setAttribute('aria-pressed',String(state.spectrumSpread));
+    $('spectrum-angle-controls').hidden=state.spectrumSpread;
+    $('spectrum-angle-values').hidden=state.spectrumSpread;
+    $('spectrum-color').value=reference.id;
+    $('spectrum-angle-values').innerHTML=`<span>i = ${degrees(Math.asin(impact))} zum Lot</span><span>r (${reference.name}) = ${degrees(Math.asin(impact/reference.n))} zum Lot</span><span>θ (${reference.name}) = ${degrees(trace(reference.n,impact).theta)} zur Rückrichtung</span>`;
+    svg.setAttribute('aria-label',`Ein gemeinsamer weißer Lichtstrahl tritt in einen Wassertropfen ein. Sechs Farbwege von Rot bis Violett zeigen Brechung, eine innere Reflexion und erneute Brechung beim Austritt. Die Farbwege sind direkt beschriftet. ${state.spectrumSpread?'Die Farbabstände sind schematisch vergrößert.':`Die Winkel i und r am Eintritt und der Blickwinkel θ am Austritt sind für ${reference.name} maßstabsgetreu eingezeichnet.`}`);
     $('spectrum-detail').textContent=state.spectrumSpread
-      ? 'Die Farbabstände sind schematisch vergrößert, damit du die einzelnen Wege gut verfolgen kannst. Violett wird stärker gebrochen als Rot. Das echte Spektrum geht stufenlos von einer Farbe in die nächste über.'
-      : 'Jetzt siehst du die tatsächlichen, viel engeren Farbabstände für Wasser. Die gestrichelten Linien führen nur zu den Farbnamen. Das echte Spektrum geht stufenlos von einer Farbe in die nächste über.';
+      ? 'Die Dispersion ist schematisch vergrößert, damit du die Farbwege gut verfolgen kannst. In diesem Modus werden keine tatsächlichen Winkel angezeigt.'
+      : 'Alle Strahlen und Winkel sind mit den Brechungsindizes von Wasser berechnet. Der Eintritt liegt bei 86 % des Radius, wie in der Grundeinstellung von Ansicht 01. Das gesamte Bild ist gedreht; die Winkel bleiben dabei gleich. i und r werden zum Lot gemessen, der Blickwinkel θ zur Rückrichtung des einfallenden Lichts. Gestrichelte Linien an den Strahlenden führen nur zu den Farbnamen.';
   }
 
   const draw=()=>state.view==='drop'?drawDrop():state.view==='spectrum'?drawSpectrum():drawSpace();
@@ -592,14 +623,16 @@ body { padding:0; }
     if(Number.isFinite(s.yaw))state.yaw=s.yaw;
     if(Number.isFinite(s.pitch))state.pitch=Math.max(-15,Math.min(75,s.pitch));
     if(typeof s.spectrumSpread==='boolean')state.spectrumSpread=s.spectrumSpread;
-    $('spectrum-spread').checked=state.spectrumSpread;
+    if(colors.some(col=>col.id===s.spectrumColor))state.spectrumColor=s.spectrumColor;
     if(typeof s.normals==='boolean')state.normals=s.normals;
     if(typeof s.dropSecondary==='boolean')state.dropSecondary=s.dropSecondary;
     $('impact').value=state.impact*100;$('wavelength').value=state.color;$('normals').checked=state.normals;$('drop-secondary').checked=state.dropSecondary;
     $('space-sun').value=state.sun;$('space-sweep').value=state.arcPosition*1000;$('space-camera').value=state.camera;$('space-wavelength').value=state.spaceColor;
   }
   root.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',()=>{changeView(el.dataset.view,true);save();}));
-  $('spectrum-spread').addEventListener('change',e=>{state.spectrumSpread=e.target.checked;drawSpectrum();save();});
+  $('spectrum-accurate').addEventListener('click',()=>{state.spectrumSpread=false;drawSpectrum();save();});
+  $('spectrum-exaggerated').addEventListener('click',()=>{state.spectrumSpread=true;drawSpectrum();save();});
+  $('spectrum-color').addEventListener('change',e=>{state.spectrumColor=e.target.value;drawSpectrum();save();});
   $('impact').addEventListener('input',e=>{state.impact=Number(e.target.value)/100;drawDrop();});
   $('impact').addEventListener('change',save);
   $('wavelength').addEventListener('change',e=>{state.color=e.target.value;drawDrop();save();});
