@@ -220,6 +220,13 @@ body { padding:0; }
         if(index===selected.length-1&&selected.length>1)s+=text(w-18,70,`${col.name} ${degrees(secondary.theta)}`,'class="tiny" text-anchor="end"');
       }
     });
+    const angleRadius=32;
+    const angleStart=[exitPoint[0]-angleRadius,exitPoint[1]];
+    const angleEnd=[exitPoint[0]+angleRadius*ray.outgoing[0],exitPoint[1]+angleRadius*ray.outgoing[1]];
+    s+=`<path d="M ${point(angleStart)} A ${angleRadius} ${angleRadius} 0 0 0 ${point(angleEnd)}" fill="none" stroke="${reference.hex}" stroke-width="1.8" data-view-angle="${ray.theta/rad}"/>`;
+    const angleLabelX=Math.max(112,exitPoint[0]-52);
+    s+=text(angleLabelX,exitPoint[1]+26,'Blickwinkel','text-anchor="end" class="soft tiny"');
+    s+=text(angleLabelX,exitPoint[1]+43,`${degrees(ray.theta)} (${reference.name})`,'text-anchor="end" data-angle-label');
     const e=map(ray.entry),back=map(ray.reflection),out=map(ray.exit);
     const badge=(p,num,anchor,offset)=>{
       const pos=[Math.max(12,Math.min(w-12,p[0]+offset[0])),Math.max(12,p[1]+offset[1])];
@@ -245,6 +252,7 @@ body { padding:0; }
     }
     svg.innerHTML=s;
     svg.setAttribute('aria-label',state.dropSecondary?'Berechnete Lichtwege mit einer und zwei inneren Reflexionen. An Punkt 3 teilt sich das Licht: Austritt zum Hauptbogen oder zweite Reflexion und Austritt an Punkt 4 zum Nebenbogen.':'Berechneter Lichtweg: Brechung beim Eintritt, Teilreflexion an der Rückseite, Brechung beim Austritt.');
+    svg.setAttribute('aria-label',svg.getAttribute('aria-label')+` Der Winkelbogen an Punkt 3 zeigt den Blickwinkel von ${degrees(ray.theta)} für ${reference.name}, gemessen zwischen Rückrichtung und austretendem Strahl.`);
     $('drop-title').textContent=state.dropSecondary?'Eine oder zwei Reflexionen im Tropfen':'Zweimal gebrochen, einmal gespiegelt';
     $('secondary-legend').hidden=!state.dropSecondary;
     $('impact-value').textContent=Math.round(state.impact*100)+' % Radius';
