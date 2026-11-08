@@ -218,7 +218,7 @@ body { padding:0; }
           const duration=3.8*length(points)/length([start,e,back,out,end]);
           s+=`<circle r="2.5" fill="${col.hex}" class="photon"><animateMotion dur="${duration.toFixed(3)}s" repeatCount="indefinite" path="M ${points.map(point).join(' L ')}"/></circle>`;
         }
-        if(index===0)s+=text(w-18,52,`Nebenbogen · ${col.name} ${degrees(secondary.theta)}`,'class="tiny" text-anchor="end"');
+        if(index===0)s+=text(w-18,52,`Blickwinkel Nebenbogen · ${col.name}`,'class="tiny" text-anchor="end"');
         if(index===selected.length-1&&selected.length>1)s+=text(w-18,70,`${col.name} ${degrees(secondary.theta)}`,'class="tiny" text-anchor="end"');
       }
     });
@@ -246,6 +246,17 @@ body { padding:0; }
     const angleLabelX=Math.max(104,exitPoint[0]-52);
     s+=text(angleLabelX,exitPoint[1]+26,'Blickwinkel','text-anchor="end" class="soft tiny"');
     s+=text(angleLabelX,exitPoint[1]+43,`${degrees(ray.theta)} (${reference.name})`,'text-anchor="end" data-angle-label');
+    if(state.dropSecondary) {
+      const secondary=trace(reference.n,state.impact,2),exit=map(secondary.exit);
+      s+=line([Math.max(12,exit[0]-123),exit[1]],exit,'var(--border)','stroke-dasharray="3 4" data-secondary-reverse');
+      const start=[exit[0]-angleRadius,exit[1]];
+      const end=[exit[0]+angleRadius*secondary.outgoing[0],exit[1]+angleRadius*secondary.outgoing[1]];
+      s+=`<path d="M ${point(start)} A ${angleRadius} ${angleRadius} 0 0 1 ${point(end)}" fill="none" stroke="${reference.hex}" stroke-width="1.8" data-secondary-view-angle="${secondary.theta/rad}"/>`;
+      const mid=Math.PI+secondary.theta/2;
+      const labelX=Math.max(58,Math.min(w-58,exit[0]+59*Math.cos(mid)));
+      const labelY=exit[1]+59*Math.sin(mid);
+      s+=text(labelX,labelY+2,degrees(secondary.theta),`text-anchor="middle" style="fill:${reference.hex}" data-secondary-angle-label`);
+    }
     const e=map(ray.entry),back=map(ray.reflection),out=map(ray.exit);
     const badge=(p,num,anchor,offset)=>{
       const pos=[Math.max(12,Math.min(w-12,p[0]+offset[0])),Math.max(12,p[1]+offset[1])];
@@ -270,8 +281,19 @@ body { padding:0; }
       s+=text(12,H-45,'1  Eintritt: zum Lot hin')+text(12,H-25,'2  Rückseite: teilweise gespiegelt')+text(12,H-5,'3  Austritt: vom Lot weg');
     }
     svg.innerHTML=s;
+    const secondaryLabel=svg.querySelector('[data-secondary-angle-label]');
+    if(secondaryLabel) {
+      const y=Number(secondaryLabel.getAttribute('y'));
+      const others=[...svg.querySelectorAll('text')].filter(t=>t!==secondaryLabel).map(t=>t.getBBox());
+      for(const offset of [0,-18,18,-36,36,-54,54]) {
+        secondaryLabel.setAttribute('y',y+offset);
+        const b=secondaryLabel.getBBox();
+        if(b.y>=12&&b.y+b.height<H-85&&!others.some(q=>b.x<q.x+q.width+4&&b.x+b.width+4>q.x&&b.y<q.y+q.height+4&&b.y+b.height+4>q.y))break;
+      }
+    }
     svg.setAttribute('aria-label',state.dropSecondary?'Berechnete Lichtwege mit einer und zwei inneren Reflexionen. An Punkt 3 teilt sich das Licht: Austritt zum Hauptbogen oder zweite Reflexion und Austritt an Punkt 4 zum Nebenbogen.':'Berechneter Lichtweg: Brechung beim Eintritt, Teilreflexion an der Rückseite, Brechung beim Austritt.');
     svg.setAttribute('aria-label',svg.getAttribute('aria-label')+` Der Winkelbogen an Punkt 3 zeigt den Blickwinkel von ${degrees(ray.theta)} für ${reference.name}, gemessen zwischen Rückrichtung und austretendem Strahl.`);
+    if(state.dropSecondary) svg.setAttribute('aria-label',svg.getAttribute('aria-label')+` Der Winkelbogen an Punkt 4 zeigt den Blickwinkel des Nebenbogens von ${degrees(trace(reference.n,state.impact,2).theta)} für ${reference.name}, ebenfalls zur Rückrichtung gemessen.`);
     svg.setAttribute('aria-label',svg.getAttribute('aria-label')+` Am Eintritt: i ist der Einfallswinkel von ${degrees(i)} zum äußeren Lot, r der Brechungswinkel von ${degrees(r)} zum inneren Lot für ${reference.name}.`);
     $('drop-title').textContent=state.dropSecondary?'Eine oder zwei Reflexionen im Tropfen':'Zweimal gebrochen, einmal gespiegelt';
     $('secondary-legend').hidden=!state.dropSecondary;
