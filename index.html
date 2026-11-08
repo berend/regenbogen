@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wie ein Regenbogen entsteht</title>
+<style>
+  :root { color-scheme: light dark; --background:light-dark(#fff,#151719); --foreground:light-dark(#20272d,#e6e9ec); --muted:light-dark(#f2f5f6,#20262b); --muted-foreground:light-dark(#54616b,#aebbc5); --border:light-dark(#d8dfe4,#39444d); --primary:light-dark(#253945,#d7e5ee); --primary-foreground:light-dark(#fff,#17232c); --card:light-dark(#f5f8fa,#1c2328); --ring:light-dark(#276e9f,#82c5ed); --radius:12px; --water:light-dark(#2684ad,#69bbde); --sun:light-dark(#95620c,#ffe4a1); }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:transparent; color:var(--foreground); font-family:var(--font-sans,system-ui,-apple-system,sans-serif); }
+  button,input,select { font:inherit; }
+  #rainbow-lab { width:100%; max-width:1000px; margin:0 auto; font-size:14px; line-height:1.55; }
+  #rainbow-lab h1 { font-size:24px; font-weight:500; letter-spacing:-.5px; margin:0 0 5px; }
+  #rainbow-lab p { margin:0; }
+  .intro { color:var(--muted-foreground); margin-bottom:20px !important; }
+  .tabs { display:flex; gap:4px; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:14px; }
+  button { cursor:pointer; border:1px solid var(--border); border-radius:8px; color:var(--foreground); background:transparent; padding:8px 12px; }
+  button:hover { background:var(--muted); }
+  button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible { outline:2px solid var(--ring); outline-offset:3px; }
+  .tabs button { flex:1; border:0; text-align:left; padding:10px; }
+  button[aria-pressed="true"],.tabs button[aria-selected="true"] { background:var(--primary); color:var(--primary-foreground); }
+  .tab-number { opacity:.65; margin-right:6px; font-variant-numeric:tabular-nums; }
+  .view-header { display:flex; gap:14px; justify-content:space-between; align-items:baseline; }
+  h2 { font-weight:500; font-size:17px; margin:0; }
+  .view-tag { color:var(--muted-foreground); font-size:12px; white-space:nowrap; }
+  .diagram { width:100%; display:block; overflow:visible; }
+  .diagram text { font-size:12px; fill:var(--foreground); font-family:inherit; }
+  .diagram .soft { fill:var(--muted-foreground); }
+  .diagram .tiny { font-size:11px; }
+  .diagram .guide { stroke:var(--border); stroke-width:1; fill:none; }
+  .diagram .normal { stroke:var(--muted-foreground); stroke-width:1; stroke-dasharray:4 5; opacity:.75; }
+  .diagram .ray { fill:none; stroke-linejoin:round; stroke-linecap:round; }
+  .diagram .water { fill:color-mix(in srgb,var(--water) 7%,transparent); stroke:var(--water); stroke-width:1.3; }
+  .controls { display:flex; flex-wrap:wrap; gap:14px 20px; align-items:center; background:var(--card); padding:14px 16px; border-radius:var(--radius); }
+  .range-control { flex:1 1 230px; min-width:0; }
+  .range-top { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  output { font-variant-numeric:tabular-nums; white-space:nowrap; }
+  input[type=range] { width:100%; accent-color:var(--primary); margin:9px 0 0; cursor:pointer; display:block; }
+  input[type=checkbox] { accent-color:var(--primary); width:16px; height:16px; }
+  .check { display:flex; align-items:center; gap:6px; cursor:pointer; }
+  select { border:1px solid var(--border); border-radius:7px; padding:7px 9px; background:var(--card); color:var(--foreground); max-width:100%; }
+  .control-stack { display:flex; flex-direction:column; gap:5px; }
+  .space-steps { display:flex; gap:6px; flex-wrap:wrap; margin-top:12px; }
+  .space-steps button { flex:1; min-width:85px; padding:8px; }
+  .space-tools { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin:12px 0 0; }
+  #space-svg { touch-action:none; cursor:grab; user-select:none; overflow:hidden; }
+  #space-svg.dragging { cursor:grabbing; touch-action:none; }
+  .note { margin-top:14px; min-height:75px; }
+  .note strong { font-weight:500; }
+  .note p + p { margin-top:5px !important; color:var(--muted-foreground); }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; margin-top:12px; color:var(--muted-foreground); font-size:12px; }
+  .legend span { display:inline-flex; align-items:center; gap:5px; }
+  .swatch { width:20px; height:3px; display:inline-block; background:var(--foreground); }
+  .swatch.dashed { height:0; background:none; border-top:1px dashed var(--muted-foreground); }
+  details { margin-top:20px; border-top:1px solid var(--border); padding-top:12px; color:var(--muted-foreground); font-size:12px; }
+  summary { cursor:pointer; color:var(--foreground); }
+  details p { margin-top:8px !important; }
+  a { color:inherit; text-underline-offset:3px; }
+  [hidden] { display:none !important; }
+  @media(max-width:480px) { #rainbow-lab h1 { font-size:21px; } .tabs button { padding:8px 6px; text-align:center; } .tab-number { display:block; margin:0; } .view-header { display:block; } .view-tag { display:block; margin-top:2px; } .controls { gap:12px; } .note { min-height:110px; } }
+  @media(prefers-reduced-motion:reduce) { .photon { display:none; } }
+#rainbow-lab:fullscreen { max-width:none; padding:24px; background:var(--background); overflow:auto; }
+body { padding:0; }
+.range-top { flex-wrap:wrap; }
+#space-sweep-control { flex-basis:340px; }
+</style>
+</head>
+<body>
+<main id="rainbow-lab" data-start="space">
+  <div class="view-header"><h1>Licht im Regenbogen</h1><button type="button" id="fullscreen">Vollbild</button></div>
+  <p class="intro">Zwei Ansichten für den Vortrag</p>
+  <div class="tabs" role="tablist" aria-label="Den Regenbogen erkunden">
+    <button type="button" role="tab" id="tab-drop" aria-controls="panel-drop" aria-selected="true" data-view="drop"><span class="tab-number">01</span>Im Tropfen</button>
+    <button type="button" role="tab" id="tab-space" aria-controls="panel-space" aria-selected="false" data-view="space"><span class="tab-number">02</span>Der Bogen in 3D</button>
+  </div>
+
+  <section id="panel-drop" role="tabpanel" aria-labelledby="tab-drop">
+    <div class="view-header"><h2>Zweimal gebrochen, einmal gespiegelt</h2><span class="view-tag">Querschnitt durch einen Tropfen</span></div>
+    <svg id="drop-svg" class="diagram" role="img" aria-label="Berechneter Lichtweg: Brechung beim Eintritt, Teilreflexion an der Rückseite, Brechung beim Austritt."></svg>
+    <div class="controls">
+      <div class="range-control"><div class="range-top"><label for="impact">Wo trifft das Licht ein?</label><output id="impact-value" for="impact"></output></div><input id="impact" type="range" min="10" max="98" value="86" aria-label="Eintrittshöhe in Prozent des Tropfenradius"></div>
+      <div class="control-stack"><label for="wavelength">Lichtfarbe</label><select id="wavelength"><option value="all">Ganzes Spektrum</option><option value="red">Rot</option><option value="green">Grün</option><option value="violet">Violett</option></select></div>
+      <label class="check"><input id="normals" type="checkbox" checked> Lote</label>
+      <button id="animate" type="button" aria-pressed="false">Licht verfolgen</button>
+    </div>
+    <div class="legend"><span><i class="swatch" style="background:var(--sun)"></i>Sonnenlicht →</span><span><i class="swatch dashed"></i>Lot = senkrecht zur Oberfläche</span></div>
+    <div class="note" aria-live="polite"><p id="drop-explanation"></p><p id="drop-detail"></p></div>
+  </section>
+
+
+  <section id="panel-space" role="tabpanel" aria-labelledby="tab-space" hidden>
+    <div class="view-header"><h2>Der Lichtstrahl wandert über den sichtbaren Bogen</h2><span class="view-tag">Mit Maus oder Finger räumlich drehen</span></div>
+    <svg id="space-svg" class="diagram" role="img" aria-label="Drehbares räumliches Modell: Das Auge liegt an der Spitze eines Kegels. Alle Blickrichtungen auf dem Kegelmantel haben 42 Grad Abstand von seiner Achse und bilden am Himmel einen Kreis."></svg>
+    <div class="controls">
+      <div class="range-control" id="space-sweep-control"><div class="range-top"><label for="space-sweep">Um die Achse herum</label><output id="space-sweep-value" for="space-sweep"></output></div><input id="space-sweep" type="range" min="0" max="1000" value="500" step="1"></div>
+      <div class="range-control"><div class="range-top"><label for="space-sun">Sonnenhöhe</label><output id="space-sun-value" for="space-sun">12°</output></div><input id="space-sun" type="range" min="0" max="55" value="12"></div>
+    </div>
+    <div class="space-tools"><label for="space-camera">Perspektive</label><select id="space-camera"><option value="left">Schräg von links</option><option value="right">Schräg von rechts</option><option value="top">Von oben</option><option value="eye">Aus deinem Auge</option></select><span class="view-tag" id="space-hint">Im Bild ziehen zum Drehen</span></div>
+    <div class="note" aria-live="polite"><p id="space-explanation"></p><p id="space-detail"></p></div>
+  </section>
+  <details><summary>Was das Modell zeigt · Quellen</summary><p>Das Tropfenmodell berechnet Strahlen mit dem Snelliusschen Brechungsgesetz und dem Reflexionsgesetz. Es zeigt den Weg mit einer inneren Reflexion; an jeder Grenzfläche gibt es weitere reflektierte und durchgelassene Anteile. Die Reflexion des Hauptbogens ist eine Teilreflexion, keine Totalreflexion.</p><p>Verwendet werden kugelförmige Wassertropfen und gerundete Brechungsindizes von n ≈ 1,331 (Rot) bis 1,3435 (Violett). Die Winkel beziehen sich auf den Sonnengegenpunkt. Die Himmelsansicht verwendet eine stereografische Projektion und passt den Maßstab an den sichtbaren Ausschnitt an. Der Winkelradius bleibt dabei gleich. Die Tropfen in der zweiten Ansicht sind zur Erkennbarkeit vergrößert. Helligkeiten, Beugung, Polarisation und die Überlagerung aller Strahlen werden nicht simuliert.</p><p>In 3D wird der Kegelmantel aus Richtungen mit dem berechneten roten Regenbogenwinkel konstruiert und perspektivisch projiziert. Der farbige Ring liegt zur Veranschaulichung in einer gewählten Entfernung; echte beitragende Tropfen können überall entlang dieser Richtungen liegen. Die Horizontebene geht durch das Auge und trennt obere und untere Blickrichtungen. Sie stellt keine Wand oder tatsächliche Regenschicht dar. Die Ansicht aus dem Auge zeigt Blickrichtungen stereografisch.</p><p>Hintergrund: <a href="https://weather.metoffice.gov.uk/learn-about/weather/optical-effects/rainbows" target="_blank" rel="noopener">Met Office: Rainbows</a> · <a href="https://www.hyperphysics.phy-astr.gsu.edu/hbase/atmos/rbowpri.html" target="_blank" rel="noopener">Georgia State University: Primary Rainbow</a> · <a href="https://www.eoas.ubc.ca/books/Practical_Meteorology/" target="_blank" rel="noopener">UBC: Practical Meteorology</a></p></details>
+</main>
+<script>
+(() => {
+  const root = document.getElementById('rainbow-lab');
+  const $ = id => root.querySelector('#' + id);
+  const rad = Math.PI / 180;
+  const colors = [
+    {id:'red',name:'Rot',hex:'#f06458',n:1.331},
+    {id:'orange',name:'Orange',hex:'#ef9a45',n:1.333},
+    {id:'yellow',name:'Gelb',hex:'#d8b934',n:1.3345},
+    {id:'green',name:'Grün',hex:'#43b883',n:1.3365},
+    {id:'blue',name:'Blau',hex:'#479fec',n:1.340},
+    {id:'violet',name:'Violett',hex:'#a17af5',n:1.3435}
+  ];
+  const state = {view:root.dataset.start || 'space',impact:.86,color:'all',normals:true,animate:false,eye:'all',sun:12,full:false,secondary:false,spaceStep:3,sweep:360,arcPosition:.5,camera:'left',yaw:-55,pitch:22};
+  const degrees = n => (n / rad).toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1}) + '°';
+  const point = p => p.map(v => v.toFixed(2)).join(',');
+  const line = (a,b,stroke,extra='') => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${stroke}" ${extra}/>`;
+  const text = (x,y,label,extra='') => `<text x="${x}" y="${y}" ${extra}>${label}</text>`;
+  const circle = (p,r,extra) => `<circle cx="${p[0]}" cy="${p[1]}" r="${r}" ${extra}/>`;
+  function arrow(a,b,stroke,width=1.5,opacity=1) {
+    const angle = Math.atan2(b[1]-a[1],b[0]-a[0]);
+    const c = [b[0]-6*Math.cos(angle-.42),b[1]-6*Math.sin(angle-.42)];
+    const d = [b[0]-6*Math.cos(angle+.42),b[1]-6*Math.sin(angle+.42)];
+    return `<g opacity="${opacity}">${line(a,b,stroke,`stroke-width="${width}"`)}<path d="M ${point(c)} L ${point(b)} L ${point(d)}" fill="none" stroke="${stroke}" stroke-width="${width}"/></g>`;
+  }
+  // Vector Snell refraction. The supplied normal points into the incident medium.
+  function refract(v,normal,eta) {
+    const cos = -(v[0]*normal[0]+v[1]*normal[1]);
+    const k = eta*cos-Math.sqrt(1-eta*eta*(1-cos*cos));
+    return [eta*v[0]+k*normal[0],eta*v[1]+k*normal[1]];
+  }
+  function nextSurface(p,v) {
+    const t = -2*(p[0]*v[0]+p[1]*v[1]);
+    return [p[0]+t*v[0],p[1]+t*v[1]];
+  }
+  function trace(n,b) {
+    const entry = [-Math.sqrt(1-b*b),-b];
+    const inside = refract([1,0],entry,1/n);
+    const reflection = nextSurface(entry,inside);
+    const dot = inside[0]*reflection[0]+inside[1]*reflection[1];
+    const reflected = [inside[0]-2*dot*reflection[0],inside[1]-2*dot*reflection[1]];
+    const exit = nextSurface(reflection,reflected);
+    const outgoing = refract(reflected,[-exit[0],-exit[1]],n);
+    return {entry,reflection,exit,outgoing,theta:Math.atan2(outgoing[1],-outgoing[0])};
+  }
+  function rainbowAngle(n,order=1) {
+    const q = order+1;
+    const b = Math.sqrt((q*q-n*n)/(q*q-1));
+    const i = Math.asin(b),r = Math.asin(b/n);
+    return order === 1 ? 4*r-2*i : Math.PI+2*i-6*r;
+  }
+  function dimensions(svg,height) {
+    const width = Math.max(280,Math.round(root.getBoundingClientRect().width));
+    svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
+    svg.style.height = height + 'px';
+    return width;
+  }
+  function drawDrop() {
+    const svg = $('drop-svg'),w=dimensions(svg,385),small=w<480;
+    const radius=small?80:98,c=[w*.58,122];
+    const map = p => [c[0]+p[0]*radius,c[1]+p[1]*radius];
+    const reference = colors.find(d => d.id===state.color) || colors[0];
+    const ray = trace(reference.n,state.impact);
+    const incomingY=map(ray.entry)[1];
+    const start=[16,incomingY];
+    const selected = state.color==='all'?colors:colors.filter(d=>d.id===state.color);
+    let s=`<defs><radialGradient id="water-light"><stop stop-color="var(--water)" stop-opacity=".02"/><stop offset="1" stop-color="var(--water)" stop-opacity=".12"/></radialGradient></defs>`;
+    s += circle(c,radius,'fill="url(#water-light)" stroke="var(--water)" stroke-width="1.4"');
+    s += text(c[0],c[1]+4,'Wasser','text-anchor="middle" class="soft"');
+    s += text(w-12,29,'Luft','text-anchor="end" class="soft"');
+    if (state.normals) {
+      [ray.entry,ray.reflection,ray.exit].forEach(p=>{
+        const inner=map(p.map(x=>x*.65)),outer=map(p.map(x=>x*1.2));
+        s+=line(inner,outer,'var(--muted-foreground)','class="normal"');
+      });
+    }
+    const exitPoint=map(ray.exit);
+    s+=line([Math.max(12,exitPoint[0]-123),exitPoint[1]],exitPoint,'var(--border)','stroke-dasharray="3 4"');
+    if(state.impact>.5) s+=text(Math.max(12,exitPoint[0]-123),exitPoint[1]-8,'Rückrichtung','class="soft tiny"');
+    s += arrow(start,map(ray.entry),'var(--sun)',3);
+    s += text(16,Math.max(21,incomingY-13),'Sonnenlicht','class="soft"');
+    selected.forEach((col,index)=>{
+      const r=trace(col.n,state.impact),e=map(r.entry),back=map(r.reflection),out=map(r.exit);
+      const travel=Math.min((18-out[0])/r.outgoing[0],(304-out[1])/r.outgoing[1]);
+      const end=[out[0]+travel*r.outgoing[0],out[1]+travel*r.outgoing[1]];
+      const path=`M ${point(e)} L ${point(back)} L ${point(out)} L ${point(end)}`;
+      s+=`<path d="${path}" stroke="${col.hex}" stroke-width="${selected.length===1?2.8:1.8}" opacity=".9" class="ray"/>`;
+      const mid=[out[0]+.63*(end[0]-out[0]),out[1]+.63*(end[1]-out[1])];
+      s+=arrow([mid[0]-r.outgoing[0]*9,mid[1]-r.outgoing[1]*9],mid,col.hex,1.7);
+      if(state.animate) {
+        s+=`<circle r="3" fill="${col.hex}" class="photon"><animateMotion dur="3.8s" repeatCount="indefinite" path="M ${point(start)} L ${point(e)} L ${point(back)} L ${point(out)} L ${point(end)}"/></circle>`;
+      }
+      if(index===0) s+=text(Math.max(104,end[0]-10),end[1]+15,`${col.name} ${degrees(r.theta)}`,'class="tiny" text-anchor="end"');
+      if(index===selected.length-1 && selected.length>1) s+=text(Math.min(w-104,end[0]+10),end[1]-2,`${col.name} ${degrees(r.theta)}`,'class="tiny"');
+    });
+    const e=map(ray.entry),back=map(ray.reflection),out=map(ray.exit);
+    const badge=(p,num,anchor,offset)=>{
+      const pos=[Math.max(12,Math.min(w-12,p[0]+offset[0])),Math.max(12,p[1]+offset[1])];
+      return line(p,pos,'var(--border)')+circle(pos,10,'fill="var(--primary)"')+text(pos[0],pos[1]+4,num,'text-anchor="middle" style="fill:var(--primary-foreground)"');
+    };
+    s+=badge(e,'1','',[-20,-22])+badge(back,'2','',[20,-16])+badge(out,'3','',[20,22]);
+    const y=343;
+    if(!small) {
+      s+=text(w*.24,y,'1  Zum Lot hin','text-anchor="middle"')+text(w*.58,y,'2  Teilreflexion','text-anchor="middle"')+text(w*.87,y,'3  Vom Lot weg','text-anchor="middle"');
+      s+=text(w*.24,y+19,'Luft → Wasser','text-anchor="middle" class="soft tiny"')+text(w*.58,y+19,'an der Rückseite','text-anchor="middle" class="soft tiny"')+text(w*.87,y+19,'Wasser → Luft','text-anchor="middle" class="soft tiny"');
+    } else {
+      s+=text(12,340,'1  Eintritt: zum Lot hin')+text(12,360,'2  Rückseite: teilweise gespiegelt')+text(12,380,'3  Austritt: vom Lot weg');
+    }
+    svg.innerHTML=s;
+    $('impact-value').textContent=Math.round(state.impact*100)+' % Radius';
+    const i=Math.asin(state.impact),r=Math.asin(state.impact/reference.n);
+    $('drop-explanation').innerHTML=state.color==='all'
+      ? '<strong>Violett wird stärker gebrochen als Rot.</strong> Im Wasser ist Licht langsamer unterwegs. Diese Änderung der Geschwindigkeit hängt von der Wellenlänge ab – und damit auch die Brechung.'
+      : `<strong>${reference.name} im Tropfen:</strong> Einfallswinkel ${degrees(i)}, Brechungswinkel ${degrees(r)} – jeweils zum Lot gemessen.`;
+    $('drop-detail').textContent=state.impact>.82&&state.impact<.90
+      ? 'Hier liegt der Regenbogenbereich: Viele benachbarte Eintrittsstrahlen verlassen den Tropfen in fast der gleichen Richtung. Dort konzentriert sich das Licht.'
+      : 'Auch andere Eintrittshöhen lenken Licht zurück. Der helle Hauptbogen entsteht nahe 86 % des Radius, wo sich besonders viele Strahlrichtungen bündeln.';
+  }
+  function visibleArc(sunDegrees,theta) {
+    if(sunDegrees*rad>=theta)return {start:Math.PI/2,end:Math.PI/2,span:0};
+    const alpha=Math.asin(Math.max(0,Math.min(1,Math.tan(sunDegrees*rad)/Math.tan(theta))));
+    return {start:Math.PI-alpha,end:alpha,span:Math.PI-2*alpha};
+  }
+  function drawSpace() {
+    const svg=$('space-svg'),H=410,w=dimensions(svg,H),small=w<480;
+    const eyeView=state.camera==='eye',cut=state.spaceStep===3;
+    const h=state.sun*rad,theta=rainbowAngle(colors[0].n),L=3.7;
+    const axis=[0,-Math.sin(h),Math.cos(h)],up=[0,Math.cos(h),Math.sin(h)],E=[0,0,0];
+    const add=(a,b)=>a.map((v,i)=>v+b[i]);
+    const mul=(a,t)=>a.map(v=>v*t);
+    const dot=(a,b)=>a.reduce((sum,v,i)=>sum+v*b[i],0);
+    const sub=(a,b)=>a.map((v,i)=>v-b[i]);
+    const norm=a=>mul(a,1/Math.hypot(...a));
+    const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+    const direction=(angle,phi)=>add(mul(axis,Math.cos(angle)),[Math.sin(angle)*Math.cos(phi),up[1]*Math.sin(angle)*Math.sin(phi),up[2]*Math.sin(angle)*Math.sin(phi)]);
+    const at=(angle,phi,distance=L)=>mul(direction(angle,phi),distance);
+    const limit=visibleArc(state.sun,theta);
+    const selectedPhi=limit.start+(limit.end-limit.start)*state.arcPosition;
+    const end=Math.PI*2;
+    const yaw=state.yaw*rad,pitch=state.pitch*rad,target=mul(axis,1.6);
+    const camera=add(target,[8.5*Math.cos(pitch)*Math.sin(yaw),8.5*Math.sin(pitch),-8.5*Math.cos(pitch)*Math.cos(yaw)]);
+    const forward=norm(sub(target,camera)),right=norm(cross(forward,[0,1,0])),camUp=cross(right,forward);
+    function raw(p) {
+      if(eyeView) {
+        const d=norm(p);
+        return [d[0]/(1+d[2]),-d[1]/(1+d[2]),Math.hypot(...p)];
+      }
+      const q=sub(p,camera),depth=dot(q,forward);
+      return [dot(q,right)/depth,-dot(q,camUp)/depth,depth];
+    }
+    const fullRing=Array.from({length:120},(_,i)=>at(theta,Math.PI/2+i*Math.PI/60));
+    const sun=mul(axis,-1.65),axisEnd=mul(axis,L*1.15);
+    const samples=eyeView?fullRing:[...fullRing,E,sun,axisEnd];
+    const bounds=samples.map(raw),xs=bounds.map(p=>p[0]),ys=bounds.map(p=>p[1]);
+    const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+    const scale=Math.min((w-85)/(maxX-minX),(H-105)/(maxY-minY));
+    const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
+    const project=p=>{const q=raw(p);return [w/2+(q[0]-cx)*scale,H/2+(q[1]-cy)*scale,q[2]];};
+    const flat=p=>project(p).slice(0,2);
+    const path=ps=>'M '+ps.map(p=>point(flat(p))).join(' L ');
+    // Cut both line segments and cone faces against the horizon plane y=0.
+    function clipPolygon(ps) {
+      if(!cut)return ps;
+      const out=[];
+      for(let i=0;i<ps.length;i++) {
+        const a=ps[i],b=ps[(i+1)%ps.length],aIn=a[1]>=0,bIn=b[1]>=0;
+        if(aIn)out.push(a);
+        if(aIn!==bIn)out.push(add(a,mul(sub(b,a),a[1]/(a[1]-b[1]))));
+      }
+      return out;
+    }
+    function segment(a,b,stroke,extra='') {
+      if(cut) {
+        if(a[1]<0&&b[1]<0)return '';
+        if((a[1]<0)!==(b[1]<0)) {
+          const c=add(a,mul(sub(b,a),a[1]/(a[1]-b[1])));
+          if(a[1]<0)a=c;else b=c;
+        }
+      }
+      return line(flat(a),flat(b),stroke,extra);
+    }
+    let s='';
+    if(cut&&!eyeView) {
+      const floor=[[-3,0,-.6],[3,0,-.6],[3,0,4.5],[-3,0,4.5]];
+      s+=`<path d="${path(floor)} Z" fill="var(--muted)" opacity=".45" stroke="var(--border)" stroke-width="1"/>`;
+      for(let x=-3;x<=3;x++)s+=line(flat([x,0,-.6]),flat([x,0,4.5]),'var(--border)','opacity=".35"');
+      for(let z=0;z<=4;z++)s+=line(flat([-3,0,z]),flat([3,0,z]),'var(--border)','opacity=".35"');
+    }
+    if(cut&&eyeView) {
+      const y=flat([0,0,1])[1];
+      s+=`<rect x="0" y="${Math.max(0,y)}" width="${w}" height="${Math.max(0,H-Math.max(0,y))}" fill="var(--muted)" opacity=".6"/>`;
+      if(y>45&&y<H-40) {
+        s+=line([8,y],[w-8,y],'var(--muted-foreground)','stroke-width="1"');
+        s+=text(w-12,y-9,'Horizont','text-anchor="end" class="soft"');
+      }
+      if(h>theta)s+=text(w/2,H/2-42,'Hauptbogen unter dem Horizont','text-anchor="middle"');
+    }
+    if(!eyeView&&state.spaceStep>1) {
+      const faces=[];
+      for(let j=0;j<72;j++) {
+        const t0=j/72*Math.PI*2,t1=(j+1)/72*Math.PI*2;
+        if(t0>=end)break;
+        const points=clipPolygon([E,at(theta,Math.PI/2+t0),at(theta,Math.PI/2+Math.min(t1,end))]);
+        if(points.length>=3)faces.push({points,depth:points.reduce((a,p)=>a+project(p)[2],0)/points.length});
+      }
+      faces.sort((a,b)=>b.depth-a.depth).forEach(f=>{s+=`<path d="${path(f.points)} Z" fill="var(--water)" opacity=".065"/>`;});
+      for(let j=0;j<=18;j++) {
+        const t=j/18*Math.PI*2;
+        if(t>end)break;
+        s+=segment(E,at(theta,Math.PI/2+t),'var(--muted-foreground)','stroke-width="1" opacity=".24"');
+      }
+    }
+    if(!eyeView) {
+      s+=line(flat(E),flat(axisEnd),'var(--muted-foreground)','stroke-width="1.2" stroke-dasharray="5 5"');
+      s+=arrow(flat(sun),flat(mul(axis,-.35)),'var(--sun)',2);
+      const sunP=flat(sun);
+      s+=circle(sunP,7,'fill="var(--sun)" opacity=".9"');
+      s+=text(Math.max(12,Math.min(w-50,sunP[0]-15)),sunP[1]-17,'Sonne','class="soft"');
+    }
+    const ringParts=[];
+    if(state.spaceStep>1) {
+      // Far segments first, near segments last. Spectral marks retain their physical colors.
+      for(let j=0;j<180;j++) {
+        const t0=j/180*Math.PI*2,t1=Math.min(end,(j+1)/180*Math.PI*2);
+        if(t0>=end)break;
+        colors.forEach(col=>{
+          const a=at(rainbowAngle(col.n),Math.PI/2+t0),b=at(rainbowAngle(col.n),Math.PI/2+t1);
+          ringParts.push({a,b,col,depth:(project(a)[2]+project(b)[2])/2});
+        });
+      }
+      ringParts.sort((a,b)=>b.depth-a.depth).forEach(d=>{s+=segment(d.a,d.b,d.col.hex,'stroke-width="1.8" stroke-linecap="round"');});
+    }
+    const phi=selectedPhi,selected=at(theta,phi),visible=limit.span>0;
+    if(visible&&Math.abs(selected[1])<1e-9)selected[1]=0;
+    svg.dataset.rayHeight=String(selected[1]);
+    svg.dataset.arcSpan=String(limit.span/rad);
+    svg.dataset.rayAngle=String(Math.acos(dot(norm(selected),axis))/rad);
+    if(visible) {
+      if(!eyeView) {
+        s+=arrow(flat(sub(selected,mul(axis,1.05))),flat(selected),'var(--sun)',1.8);
+        s+=arrow(flat(selected),flat(E),colors[0].hex,2.5);
+        // A circular angle mark in the plane containing this ray and the cone axis.
+        const anglePoints=Array.from({length:21},(_,i)=>at(theta*i/20,phi,.73));
+        s+=`<path d="${path(anglePoints)}" fill="none" stroke="var(--foreground)" stroke-width="1.2"/>`;
+        const angleLabel=flat(at(theta*.55,phi,1.03));
+        s+=text(angleLabel[0]+8,angleLabel[1]-5,'42°');
+      }
+      s+=circle(flat(selected),4.5,'fill="var(--card)" stroke="var(--water)" stroke-width="2"');
+    }
+    if(!eyeView) {
+      const p=flat(E);
+      s+=circle(p,6,'fill="var(--foreground)" stroke="var(--card)" stroke-width="2"');
+      s+=text(Math.max(45,Math.min(w-45,p[0])),p[1]+25,'Dein Auge','text-anchor="middle"');
+    } else {
+      const anti=flat(axis);
+      s+=line([anti[0]-5,anti[1]],[anti[0]+5,anti[1]],'var(--muted-foreground)');
+      s+=line([anti[0],anti[1]-5],[anti[0],anti[1]+5],'var(--muted-foreground)');
+      s+=text(anti[0],anti[1]+24,'Sonnengegenpunkt','text-anchor="middle" class="soft"');
+    }
+    s+=text(12,23,eyeView?'Du blickst selbst in den Regen':state.spaceStep===1?'Ein Blickstrahl mit 42° zur Achse':'Alle diese Strahlen haben denselben Winkel','class="soft"');
+    s+=text(12,H-13,cut?'Blickrichtungen unter dem Horizont ausgeblendet':state.spaceStep===1?'Die Achse zeigt von der Sonne weg.':small?'Kegel = gedachte Hilfe · Ring = Richtungen':'Kegel = gedachte Hilfe · der Ring ist keine feste Wand aus Tropfen','class="soft tiny"');
+    svg.innerHTML=s;
+    $('space-sweep-value').textContent=limit.span>0?degrees(limit.span*state.arcPosition)+' / '+degrees(limit.span):'Kein sichtbarer Bogen';
+    $('space-sweep').disabled=limit.span===0;
+    $('space-sweep').setAttribute('aria-valuetext',limit.span>0?degrees(limit.span*state.arcPosition)+' von '+degrees(limit.span)+' oberhalb des Horizonts':'Kein Hauptbogen über dem Horizont');$('space-sun-value').textContent=state.sun+'°';
+    $('space-sweep-control').hidden=state.spaceStep===1;
+    $('space-hint').textContent=eyeView?'Deine Blickrichtung: von der Sonne weg':'Im Bild ziehen zum Drehen';
+    $('space-explanation').innerHTML=limit.span>0
+      ? '<strong>Der Winkel zur Achse bleibt etwa 42°.</strong> Der Regler bewegt den roten Lichtstrahl ausschließlich zwischen den beiden Horizontpunkten. Der ganze sichtbare Bogen bleibt stehen.'
+      : '<strong>Der Hauptbogen liegt unter dem Horizont.</strong> Senke die Sonnenhöhe, um ihn wieder über dem Horizont zu sehen.';
+    $('space-detail').textContent='Die Gradzahl am Regler zählt die Drehung um die Achse ab dem ersten Horizontpunkt. Sie ist ein anderer Winkel als die konstanten 42° zwischen Achse und Lichtstrahl.';
+  }
+
+  const draw=()=>state.view==='drop'?drawDrop():drawSpace();
+  function save() {
+    window.openai?.setWidgetState?.({modelContent:{ansicht:state.view,sonnenhoehe:state.sun,bogenposition:state.arcPosition,kamera:state.camera},privateContent:{...state,animate:false}})?.catch(()=>{});
+  }
+  function changeView(view,updateHash=false) {
+    state.view=view==='drop'?'drop':'space';
+    state.animate=false;
+    $('animate').setAttribute('aria-pressed','false');$('animate').textContent='Licht verfolgen';
+    root.querySelectorAll('[data-view]').forEach(el=>el.setAttribute('aria-selected',String(el.dataset.view===state.view)));
+    ['drop','space'].forEach(v=>$('panel-'+v).hidden=v!==state.view);
+    if(updateHash)history.replaceState(null,'','#'+state.view);
+    draw();
+  }
+  function restore(saved) {
+    const s=saved?.privateContent;
+    if(!s)return;
+    if(['drop','space'].includes(s.view))state.view=s.view;
+    if(['all','red','green','violet'].includes(s.color))state.color=s.color;
+    if(Number.isFinite(s.impact))state.impact=Math.max(.1,Math.min(.98,s.impact));
+    if(Number.isFinite(s.sun))state.sun=Math.max(0,Math.min(55,s.sun));
+    if(Number.isFinite(s.arcPosition))state.arcPosition=Math.max(0,Math.min(1,s.arcPosition));
+    if(['left','right','top','eye'].includes(s.camera))state.camera=s.camera;
+    if(Number.isFinite(s.yaw))state.yaw=s.yaw;
+    if(Number.isFinite(s.pitch))state.pitch=Math.max(-15,Math.min(75,s.pitch));
+    if(typeof s.normals==='boolean')state.normals=s.normals;
+    $('impact').value=state.impact*100;$('wavelength').value=state.color;$('normals').checked=state.normals;
+    $('space-sun').value=state.sun;$('space-sweep').value=state.arcPosition*1000;$('space-camera').value=state.camera;
+  }
+  root.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',()=>{changeView(el.dataset.view,true);save();}));
+  $('impact').addEventListener('input',e=>{state.impact=Number(e.target.value)/100;drawDrop();});
+  $('impact').addEventListener('change',save);
+  $('wavelength').addEventListener('change',e=>{state.color=e.target.value;drawDrop();save();});
+  $('normals').addEventListener('change',e=>{state.normals=e.target.checked;drawDrop();save();});
+  $('animate').addEventListener('click',()=>{state.animate=!state.animate;$('animate').setAttribute('aria-pressed',String(state.animate));$('animate').textContent=state.animate?'Animation anhalten':'Licht verfolgen';drawDrop();});
+  $('space-sweep').addEventListener('input',e=>{state.arcPosition=Number(e.target.value)/1000;drawSpace();});
+  $('space-sweep').addEventListener('change',save);
+  $('space-sun').addEventListener('input',e=>{state.sun=Number(e.target.value);drawSpace();});
+  $('space-sun').addEventListener('change',save);
+  $('space-camera').addEventListener('change',e=>{
+    state.camera=e.target.value;
+    const pose={left:[-55,22],right:[55,22],top:[-25,65]}[state.camera];
+    if(pose)[state.yaw,state.pitch]=pose;
+    drawSpace();save();
+  });
+  let drag=null;
+  $('space-svg').addEventListener('pointerdown',e=>{
+    if(state.camera==='eye')return;
+    drag={x:e.clientX,y:e.clientY,yaw:state.yaw,pitch:state.pitch,id:e.pointerId};
+    if(e.isTrusted)$('space-svg').setPointerCapture(e.pointerId);
+    $('space-svg').classList.add('dragging');
+  });
+  $('space-svg').addEventListener('pointermove',e=>{
+    if(!drag||e.pointerId!==drag.id)return;
+    state.yaw=drag.yaw+(e.clientX-drag.x)*.55;
+    state.pitch=Math.max(-15,Math.min(75,drag.pitch+(e.clientY-drag.y)*.4));drawSpace();
+  });
+  const endDrag=()=>{if(drag){drag=null;$('space-svg').classList.remove('dragging');save();}};
+  $('space-svg').addEventListener('pointerup',endDrag);$('space-svg').addEventListener('pointercancel',endDrag);
+  $('fullscreen').hidden=!document.fullscreenEnabled;
+  $('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await root.requestFullscreen();}catch{ $('fullscreen').textContent='Vollbild nicht verfügbar'; }});
+  document.addEventListener('fullscreenchange',()=>{$('fullscreen').textContent=document.fullscreenElement?'Vollbild beenden':'Vollbild';draw();});
+  restore(window.openai?.widgetState);
+  const viewFromHash=()=>location.hash==='#drop'?'drop':'space';
+  if(location.hash==='#drop'||location.hash==='#space')state.view=viewFromHash();
+  window.addEventListener('hashchange',()=>changeView(viewFromHash()));
+  window.addEventListener('openai:set_globals',e=>{if(e.detail?.globals?.widgetState){restore(e.detail.globals.widgetState);changeView(state.view);}});
+  changeView(state.view);new ResizeObserver(draw).observe(root);
+})();
+</script>
+</body>
+</html>
