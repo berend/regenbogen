@@ -71,10 +71,11 @@ body { padding:0; }
 <body>
 <main id="rainbow-lab" data-start="space">
   <div class="view-header"><h1>Licht im Regenbogen</h1><button type="button" id="fullscreen">Vollbild</button></div>
-  <p class="intro">Zwei Ansichten für den Vortrag</p>
+  <p class="intro">Drei Ansichten für den Vortrag</p>
   <div class="tabs" role="tablist" aria-label="Den Regenbogen erkunden">
     <button type="button" role="tab" id="tab-drop" aria-controls="panel-drop" aria-selected="true" data-view="drop"><span class="tab-number">01</span>Im Tropfen</button>
     <button type="button" role="tab" id="tab-space" aria-controls="panel-space" aria-selected="false" data-view="space"><span class="tab-number">02</span>Der Bogen in 3D</button>
+    <button type="button" role="tab" id="tab-spectrum" aria-controls="panel-spectrum" aria-selected="false" data-view="spectrum"><span class="tab-number">03</span>Farben im Tropfen</button>
   </div>
 
   <section id="panel-drop" role="tabpanel" aria-labelledby="tab-drop">
@@ -135,7 +136,13 @@ body { padding:0; }
     <div class="space-tools"><label for="space-camera">Perspektive</label><select id="space-camera"><option value="left">Schräg von links</option><option value="right">Schräg von rechts</option><option value="top">Von oben</option><option value="eye">Aus deinem Auge</option></select><span class="view-tag" id="space-hint">Im Bild ziehen zum Drehen</span></div>
     <div class="note" aria-live="polite"><p id="space-explanation"></p><p id="space-detail"></p></div>
   </section>
-  <details><summary>Was das Modell zeigt · Quellen</summary><p>Das Tropfenmodell berechnet Strahlen mit dem Snelliusschen Brechungsgesetz und dem Reflexionsgesetz. Es zeigt den Weg mit einer inneren Reflexion und auf Wunsch zusätzlich den Weg mit zwei inneren Reflexionen. Beide Wege teilen sich den Eintritt und die erste Reflexion; an der nächsten Grenzfläche tritt ein Anteil aus und ein anderer wird nochmals reflektiert. An jeder Grenzfläche gibt es weitere reflektierte und durchgelassene Anteile. Die inneren Reflexionen sind Teilreflexionen, keine Totalreflexionen.</p><p>Verwendet werden kugelförmige Wassertropfen und gerundete Brechungsindizes von n ≈ 1,331 (Rot) bis 1,3435 (Violett). Die Winkel beziehen sich auf den Sonnengegenpunkt. Die Himmelsansicht verwendet eine stereografische Projektion und passt den Maßstab an den sichtbaren Ausschnitt an. Der Winkelradius bleibt dabei gleich. Die Tropfen in der zweiten Ansicht sind zur Erkennbarkeit vergrößert. Helligkeiten, Beugung, Polarisation und die Überlagerung aller Strahlen werden nicht simuliert.</p><p>In 3D wird der Kegelmantel aus Richtungen mit dem berechneten Regenbogenwinkel der gewählten Farbe konstruiert und perspektivisch projiziert. Der farbige Ring liegt zur Veranschaulichung in einer gewählten Entfernung; echte beitragende Tropfen können überall entlang dieser Richtungen liegen. Die Horizontebene geht durch das Auge und trennt obere und untere Blickrichtungen. Sie stellt keine Wand oder tatsächliche Regenschicht dar. Die Ansicht aus dem Auge zeigt Blickrichtungen stereografisch.</p><p>Hintergrund: <a href="https://weather.metoffice.gov.uk/learn-about/weather/optical-effects/rainbows" target="_blank" rel="noopener">Met Office: Rainbows</a> · <a href="https://www.hyperphysics.phy-astr.gsu.edu/hbase/atmos/rbowpri.html" target="_blank" rel="noopener">Georgia State University: Primary Rainbow</a> · <a href="https://www.eoas.ubc.ca/books/Practical_Meteorology/" target="_blank" rel="noopener">UBC: Practical Meteorology</a></p></details>
+  <section id="panel-spectrum" role="tabpanel" aria-labelledby="tab-spectrum" hidden>
+    <div class="view-header"><h2>Ein Lichtstrahl – viele Farben</h2><span class="view-tag">Zwei Brechungen · eine Reflexion</span></div>
+    <svg id="spectrum-svg" class="diagram" role="img" aria-label="Weißes Licht trifft auf einen Wassertropfen. Die Farben werden unterschiedlich stark gebrochen, innen reflektiert und treten als Farbfächer aus."></svg>
+    <label class="check"><input id="spectrum-spread" type="checkbox" checked> Farbabstände zur Übersicht vergrößern</label>
+    <div class="note" aria-live="polite"><p>Weißes Licht enthält alle Spektralfarben. Beim Eintritt in den Tropfen werden die Farben unterschiedlich stark gebrochen. Nach einer Reflexion im Inneren werden sie beim Austritt erneut gebrochen. So entsteht ein Farbfächer.</p><p id="spectrum-detail"></p></div>
+  </section>
+  <details><summary>Was das Modell zeigt · Quellen</summary><p>Das Tropfenmodell berechnet Strahlen mit dem Snelliusschen Brechungsgesetz und dem Reflexionsgesetz. Es zeigt den Weg mit einer inneren Reflexion und auf Wunsch zusätzlich den Weg mit zwei inneren Reflexionen. Beide Wege teilen sich den Eintritt und die erste Reflexion; an der nächsten Grenzfläche tritt ein Anteil aus und ein anderer wird nochmals reflektiert. An jeder Grenzfläche gibt es weitere reflektierte und durchgelassene Anteile. Die inneren Reflexionen sind Teilreflexionen, keine Totalreflexionen.</p><p>Verwendet werden kugelförmige Wassertropfen und gerundete Brechungsindizes von n ≈ 1,331 (Rot) bis 1,3435 (Violett). Die Winkel beziehen sich auf den Sonnengegenpunkt. Die Himmelsansicht verwendet eine stereografische Projektion und passt den Maßstab an den sichtbaren Ausschnitt an. Der Winkelradius bleibt dabei gleich. Die Tropfen in der zweiten Ansicht sind zur Erkennbarkeit vergrößert. Helligkeiten, Beugung, Polarisation und die Überlagerung aller Strahlen werden nicht simuliert.</p><p>Ansicht 03 zeigt die Farbwege gemeinsam in einem Tropfen. Die Farbabstände können zur Übersicht schematisch vergrößert werden; dabei lassen sich keine tatsächlichen Winkel ablesen. Ohne diese Vergrößerung gelten die genannten Brechungsindizes von Wasser. Gestrichelte Linien an den Strahlenden dienen nur der Zuordnung zu den Farbnamen.</p><p>In 3D wird der Kegelmantel aus Richtungen mit dem berechneten Regenbogenwinkel der gewählten Farbe konstruiert und perspektivisch projiziert. Der farbige Ring liegt zur Veranschaulichung in einer gewählten Entfernung; echte beitragende Tropfen können überall entlang dieser Richtungen liegen. Die Horizontebene geht durch das Auge und trennt obere und untere Blickrichtungen. Sie stellt keine Wand oder tatsächliche Regenschicht dar. Die Ansicht aus dem Auge zeigt Blickrichtungen stereografisch.</p><p>Hintergrund: <a href="https://weather.metoffice.gov.uk/learn-about/weather/optical-effects/rainbows" target="_blank" rel="noopener">Met Office: Rainbows</a> · <a href="https://www.hyperphysics.phy-astr.gsu.edu/hbase/atmos/rbowpri.html" target="_blank" rel="noopener">Georgia State University: Primary Rainbow</a> · <a href="https://www.eoas.ubc.ca/books/Practical_Meteorology/" target="_blank" rel="noopener">UBC: Practical Meteorology</a></p></details>
 </main>
 <script>
 (() => {
@@ -150,7 +157,7 @@ body { padding:0; }
     {id:'blue',name:'Blau',hex:'#479fec',n:1.340},
     {id:'violet',name:'Violett',hex:'#a17af5',n:1.3435}
   ];
-  const state = {view:root.dataset.start || 'space',impact:.86,color:'all',spaceColor:'all',normals:true,dropSecondary:false,animate:false,eye:'all',sun:12,full:false,secondary:false,spaceStep:3,sweep:360,arcPosition:.5,camera:'left',yaw:-55,pitch:22};
+  const state = {view:root.dataset.start || 'space',impact:.86,color:'all',spaceColor:'all',spectrumSpread:true,normals:true,dropSecondary:false,animate:false,eye:'all',sun:12,full:false,secondary:false,spaceStep:3,sweep:360,arcPosition:.5,camera:'left',yaw:-55,pitch:22};
   const degrees = n => (n / rad).toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1}) + '°';
   const point = p => p.map(v => v.toFixed(2)).join(',');
   const line = (a,b,stroke,extra='') => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${stroke}" ${extra}/>`;
@@ -515,23 +522,67 @@ body { padding:0; }
     $('space-detail').textContent=`${state.spaceColor==='all'?'Im ganzen Spektrum ist der rote Rand markiert. ':''}Die Gradzahl am Regler zählt die Drehung um die Achse ab dem ersten Horizontpunkt. Sie ist ein anderer Winkel als die ${degrees(theta)} zwischen Achse und Lichtstrahl.`;
   }
 
-  const draw=()=>state.view==='drop'?drawDrop():drawSpace();
+  function drawSpectrum() {
+    const svg=$('spectrum-svg'),w=Math.max(280,Math.round(root.getBoundingClientRect().width));
+    const radius=Math.min(155,w*.27),center=[w*.64,radius+100],rotation=12*rad;
+    const rotate=p=>[p[0]*Math.cos(rotation)-p[1]*Math.sin(rotation),p[0]*Math.sin(rotation)+p[1]*Math.cos(rotation)];
+    const map=p=>rotate(p).map((v,j)=>center[j]+radius*v);
+    // Keep the same entry point for all colors. Exaggerate dispersion only in this schematic view.
+    const rays=colors.map(col=>{
+      const n=colors[0].n+(col.n-colors[0].n)*(state.spectrumSpread?16:1);
+      const ray=trace(n,.98),entry=map(ray.entry),reflection=map(ray.reflection),exit=map(ray.exit),direction=rotate(ray.outgoing);
+      const tip=[88,exit[1]+(88-exit[0])/direction[0]*direction[1]];
+      return {col,entry,reflection,exit,tip};
+    }).reverse();
+    // Separate color names without changing the directions of the rays.
+    const labels=rays.map(ray=>ray.tip[1]);
+    for(let j=1;j<labels.length;j++)labels[j]=Math.max(labels[j],labels[j-1]+21);
+    const shift=(rays[0].tip[1]+rays[rays.length-1].tip[1]-labels[0]-labels[labels.length-1])/2;
+    labels.forEach((y,j)=>labels[j]=y+shift);
+    const height=Math.ceil(Math.max(center[1]+radius,...rays.map(ray=>ray.tip[1]),...labels)+30);
+    dimensions(svg,height);
+    let s=`<defs><radialGradient id="spectrum-water"><stop stop-color="var(--water)" stop-opacity=".04"/><stop offset="1" stop-color="var(--water)" stop-opacity=".22"/></radialGradient></defs>`;
+    s+=circle(center,radius,'fill="url(#spectrum-water)" stroke="var(--water)" stroke-width="1.8"');
+    s+=text(center[0]-radius*.22,center[1],'Wassertropfen','text-anchor="middle" class="soft"');
+    rays.forEach((ray,j)=>{
+      const {col,entry,reflection,exit,tip}=ray;
+      s+=`<path d="M ${point(entry)} L ${point(reflection)} L ${point(exit)} L ${point(tip)}" stroke="${col.hex}" stroke-width="1.7" class="ray" data-spectrum-color="${col.id}"/>`;
+      const arrowTip=[tip[0]+12,tip[1]+(exit[1]-tip[1])*12/(exit[0]-tip[0])];
+      s+=arrow([arrowTip[0]+12,arrowTip[1]+(exit[1]-tip[1])*12/(exit[0]-tip[0])],arrowTip,col.hex,1.7);
+      s+=line(tip,[69,labels[j]],col.hex,'stroke-width="1" stroke-dasharray="2 3" opacity=".7"');
+      s+=text(62,labels[j]+4,col.name,`text-anchor="end" data-spectrum-label="${col.id}"`);
+    });
+    const entry=rays[0].entry;
+    const startX=Math.max(18,entry[0]-(entry[1]-18)/Math.tan(rotation));
+    const start=[startX,entry[1]-(entry[0]-startX)*Math.tan(rotation)];
+    s+=line(start,entry,'var(--foreground)','stroke-width="2.8" data-spectrum-incoming');
+    const tip=[start[0]+(entry[0]-start[0])*.55,start[1]+(entry[1]-start[1])*.55];
+    s+=arrow([tip[0]-20*Math.cos(rotation),tip[1]-20*Math.sin(rotation)],tip,'var(--foreground)',2.8);
+    s+=text((start[0]+entry[0])/2,(start[1]+entry[1])/2-13,'weißes Licht','text-anchor="middle"');
+    svg.innerHTML=s;
+    svg.setAttribute('aria-label',`Ein gemeinsamer weißer Lichtstrahl tritt in einen Wassertropfen ein. Sechs Farbwege von Rot bis Violett zeigen Brechung, eine innere Reflexion und erneute Brechung beim Austritt. Die Farbwege sind direkt beschriftet. ${state.spectrumSpread?'Die Farbabstände sind schematisch vergrößert.':'Die Strahlen sind mit den Brechungsindizes von Wasser berechnet.'}`);
+    $('spectrum-detail').textContent=state.spectrumSpread
+      ? 'Die Farbabstände sind schematisch vergrößert, damit du die einzelnen Wege gut verfolgen kannst. Violett wird stärker gebrochen als Rot. Das echte Spektrum geht stufenlos von einer Farbe in die nächste über.'
+      : 'Jetzt siehst du die tatsächlichen, viel engeren Farbabstände für Wasser. Die gestrichelten Linien führen nur zu den Farbnamen. Das echte Spektrum geht stufenlos von einer Farbe in die nächste über.';
+  }
+
+  const draw=()=>state.view==='drop'?drawDrop():state.view==='spectrum'?drawSpectrum():drawSpace();
   function save() {
     window.openai?.setWidgetState?.({modelContent:{ansicht:state.view,sonnenhoehe:state.sun,bogenposition:state.arcPosition,kamera:state.camera,nebenbogenImTropfen:state.dropSecondary,lichtfarbeImRaum:state.spaceColor},privateContent:{...state,animate:false}})?.catch(()=>{});
   }
   function changeView(view,updateHash=false) {
-    state.view=view==='drop'?'drop':'space';
+    state.view=['drop','space','spectrum'].includes(view)?view:'space';
     state.animate=false;
     $('animate').setAttribute('aria-pressed','false');$('animate').textContent='Licht verfolgen';
     root.querySelectorAll('[data-view]').forEach(el=>el.setAttribute('aria-selected',String(el.dataset.view===state.view)));
-    ['drop','space'].forEach(v=>$('panel-'+v).hidden=v!==state.view);
+    ['drop','space','spectrum'].forEach(v=>$('panel-'+v).hidden=v!==state.view);
     if(updateHash)history.replaceState(null,'','#'+state.view);
     draw();
   }
   function restore(saved) {
     const s=saved?.privateContent;
     if(!s)return;
-    if(['drop','space'].includes(s.view))state.view=s.view;
+    if(['drop','space','spectrum'].includes(s.view))state.view=s.view;
     if(['all','red','green','violet'].includes(s.color))state.color=s.color;
     if(['all','red','green','violet'].includes(s.spaceColor))state.spaceColor=s.spaceColor;
     if(Number.isFinite(s.impact))state.impact=Math.max(.1,Math.min(.98,s.impact));
@@ -540,12 +591,15 @@ body { padding:0; }
     if(['left','right','top','eye'].includes(s.camera))state.camera=s.camera;
     if(Number.isFinite(s.yaw))state.yaw=s.yaw;
     if(Number.isFinite(s.pitch))state.pitch=Math.max(-15,Math.min(75,s.pitch));
+    if(typeof s.spectrumSpread==='boolean')state.spectrumSpread=s.spectrumSpread;
+    $('spectrum-spread').checked=state.spectrumSpread;
     if(typeof s.normals==='boolean')state.normals=s.normals;
     if(typeof s.dropSecondary==='boolean')state.dropSecondary=s.dropSecondary;
     $('impact').value=state.impact*100;$('wavelength').value=state.color;$('normals').checked=state.normals;$('drop-secondary').checked=state.dropSecondary;
     $('space-sun').value=state.sun;$('space-sweep').value=state.arcPosition*1000;$('space-camera').value=state.camera;$('space-wavelength').value=state.spaceColor;
   }
   root.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',()=>{changeView(el.dataset.view,true);save();}));
+  $('spectrum-spread').addEventListener('change',e=>{state.spectrumSpread=e.target.checked;drawSpectrum();save();});
   $('impact').addEventListener('input',e=>{state.impact=Number(e.target.value)/100;drawDrop();});
   $('impact').addEventListener('change',save);
   $('wavelength').addEventListener('change',e=>{state.color=e.target.value;drawDrop();save();});
@@ -581,8 +635,8 @@ body { padding:0; }
   $('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await root.requestFullscreen();}catch{ $('fullscreen').textContent='Vollbild nicht verfügbar'; }});
   document.addEventListener('fullscreenchange',()=>{$('fullscreen').textContent=document.fullscreenElement?'Vollbild beenden':'Vollbild';draw();});
   restore(window.openai?.widgetState);
-  const viewFromHash=()=>location.hash==='#drop'?'drop':'space';
-  if(location.hash==='#drop'||location.hash==='#space')state.view=viewFromHash();
+  const viewFromHash=()=>['#drop','#space','#spectrum'].includes(location.hash)?location.hash.slice(1):'space';
+  if(['#drop','#space','#spectrum'].includes(location.hash))state.view=viewFromHash();
   window.addEventListener('hashchange',()=>changeView(viewFromHash()));
   window.addEventListener('openai:set_globals',e=>{if(e.detail?.globals?.widgetState){restore(e.detail.globals.widgetState);changeView(state.view);}});
   changeView(state.view);new ResizeObserver(draw).observe(root);
