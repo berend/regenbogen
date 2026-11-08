@@ -37,7 +37,7 @@
   output { font-variant-numeric:tabular-nums; white-space:nowrap; }
   input[type=range] { width:100%; accent-color:var(--primary); margin:9px 0 0; cursor:pointer; display:block; }
   input[type=checkbox] { accent-color:var(--primary); width:16px; height:16px; }
-  .check { display:flex; align-items:center; gap:6px; cursor:pointer; }
+  .check { display:flex; align-items:center; gap:6px; cursor:pointer; flex-shrink:0; }
   select { border:1px solid var(--border); border-radius:7px; padding:7px 9px; background:var(--card); color:var(--foreground); max-width:100%; }
   .control-stack { display:flex; flex-direction:column; gap:5px; }
   .space-steps { display:flex; gap:6px; flex-wrap:wrap; margin-top:12px; }
@@ -80,11 +80,11 @@ body { padding:0; }
     <div class="controls">
       <div class="range-control"><div class="range-top"><label for="impact">Wo trifft das Licht ein?</label><output id="impact-value" for="impact"></output></div><input id="impact" type="range" min="10" max="98" value="86" aria-label="Eintrittshöhe in Prozent des Tropfenradius"></div>
       <div class="control-stack"><label for="wavelength">Lichtfarbe</label><select id="wavelength"><option value="all">Ganzes Spektrum</option><option value="red">Rot</option><option value="green">Grün</option><option value="violet">Violett</option></select></div>
-      <label class="check"><input id="normals" type="checkbox" checked> Lote</label>
+      <label class="check"><input id="normals" type="checkbox" checked> Weitere Lote</label>
       <label class="check"><input id="drop-secondary" type="checkbox"> Nebenbogen: 2 Reflexionen</label>
       <button id="animate" type="button" aria-pressed="false">Licht verfolgen</button>
     </div>
-    <div class="legend"><span><i class="swatch" style="background:var(--sun)"></i>Sonnenlicht →</span><span><i class="swatch dashed"></i>Lot = senkrecht zur Oberfläche</span><span id="secondary-legend" hidden><i class="swatch dashed" style="border-top-width:2px"></i>Gestrichelter Farbverlauf: Nebenbogen</span></div>
+    <div class="legend"><span><i class="swatch" style="background:var(--sun)"></i>Sonnenlicht →</span><span><i class="swatch dashed"></i>Lot = senkrecht zur Oberfläche</span><span id="entry-angle-values"></span><span id="secondary-legend" hidden><i class="swatch dashed" style="border-top-width:2px"></i>Gestrichelter Farbverlauf: Nebenbogen</span></div>
     <div class="note" aria-live="polite"><p id="drop-explanation"></p><p id="drop-detail"></p></div>
   </section>
 
@@ -163,20 +163,21 @@ body { padding:0; }
     return width;
   }
   function drawDrop() {
-    const svg = $('drop-svg'),H=state.dropSecondary?465:385,w=dimensions(svg,H),small=w<480;
-    const radius=small?80:98,c=[w*.58,state.dropSecondary?174:122];
+    const svg = $('drop-svg'),H=state.dropSecondary?489:409,w=dimensions(svg,H),small=w<480;
+    const radius=small?80:98,c=[w*.58,state.dropSecondary?198:146];
     const map = p => [c[0]+p[0]*radius,c[1]+p[1]*radius];
     const reference = colors.find(d => d.id===state.color) || colors[0];
     const ray = trace(reference.n,state.impact);
+    const i=Math.asin(state.impact),r=Math.asin(state.impact/reference.n);
     const incomingY=map(ray.entry)[1];
     const start=[16,incomingY];
     const selected = state.color==='all'?colors:colors.filter(d=>d.id===state.color);
     let s=`<defs><radialGradient id="water-light"><stop stop-color="var(--water)" stop-opacity=".02"/><stop offset="1" stop-color="var(--water)" stop-opacity=".12"/></radialGradient></defs>`;
     s += circle(c,radius,'fill="url(#water-light)" stroke="var(--water)" stroke-width="1.4"');
-    s += text(c[0],c[1]+4,'Wasser','text-anchor="middle" class="soft"');
+    s += text(c[0],c[1]+(r<25*rad?44:4),'Wasser','text-anchor="middle" class="soft"');
     s += text(w-12,29,'Luft','text-anchor="end" class="soft"');
     if (state.normals) {
-      [ray.entry,ray.reflection,ray.exit].forEach(p=>{
+      [ray.reflection,ray.exit].forEach(p=>{
         const inner=map(p.map(x=>x*.65)),outer=map(p.map(x=>x*1.2));
         s+=line(inner,outer,'var(--muted-foreground)','class="normal"');
       });
@@ -197,8 +198,8 @@ body { padding:0; }
       if(state.animate) {
         s+=`<circle r="3" fill="${col.hex}" class="photon"><animateMotion dur="3.8s" repeatCount="indefinite" path="M ${point(start)} L ${point(e)} L ${point(back)} L ${point(out)} L ${point(end)}"/></circle>`;
       }
-      if(index===0) s+=text(Math.max(104,end[0]-10),end[1]+15,`${col.name} ${degrees(r.theta)}`,'class="tiny" text-anchor="end"');
-      if(index===selected.length-1 && selected.length>1) s+=text(Math.min(w-104,end[0]+10),end[1]-2,`${col.name} ${degrees(r.theta)}`,'class="tiny"');
+      if(state.impact>=.4&&index===0) s+=text(Math.max(104,end[0]-10),end[1]+15,`${col.name} ${degrees(r.theta)}`,'class="tiny" text-anchor="end"');
+      if(state.impact>=.4&&index===selected.length-1 && selected.length>1) s+=text(Math.min(w-104,end[0]+10),end[1]-2,`${col.name} ${degrees(r.theta)}`,'class="tiny"');
       if(state.dropSecondary) {
         const secondary=trace(col.n,state.impact,2),branch=map(secondary.reflections[1]),exit=map(secondary.exit),d=secondary.outgoing;
         // First positive intersection of the outgoing ray with the diagram bounds.
@@ -220,11 +221,28 @@ body { padding:0; }
         if(index===selected.length-1&&selected.length>1)s+=text(w-18,70,`${col.name} ${degrees(secondary.theta)}`,'class="tiny" text-anchor="end"');
       }
     });
+    const entryPoint=map(ray.entry);
+    const normalLength=Math.min(62,(entryPoint[1]-12)/state.impact,(entryPoint[0]-12)/(-ray.entry[0]));
+    s+=line([entryPoint[0]+normalLength*ray.entry[0],entryPoint[1]+normalLength*ray.entry[1]],[entryPoint[0]-62*ray.entry[0],entryPoint[1]-62*ray.entry[1]],'var(--muted-foreground)','class="normal" data-entry-normal');
+    const iCallout=i<30*rad||entryPoint[0]<140,rCallout=r<25*rad;
+    const entryAngles=[
+      {id:'i',start:Math.PI,end:Math.PI+i,value:i,stroke:'var(--foreground)',callout:iCallout,label:iCallout?[entryPoint[0]-48,entryPoint[1]-36]:[entryPoint[0]-48*Math.cos(i/2),entryPoint[1]-48*Math.sin(i/2)]},
+      {id:'r',start:i,end:i-r,value:r,stroke:reference.hex,callout:rCallout,label:[entryPoint[0]+52*Math.cos(i-r/2),entryPoint[1]+52*Math.sin(i-r/2)+(rCallout?18:0)]}
+    ];
+    entryAngles.forEach(a=>{
+      const ends=[a.start,a.end].map(angle=>[entryPoint[0]+28*Math.cos(angle),entryPoint[1]+28*Math.sin(angle)]);
+      s+=`<path d="M ${point(ends[0])} A 28 28 0 0 ${a.end>a.start?1:0} ${point(ends[1])}" fill="none" stroke="${a.stroke}" stroke-width="1.6" data-entry-angle="${a.id}" data-angle-degrees="${a.value/rad}"/>`;
+      if(a.callout) {
+        const mid=(a.start+a.end)/2;
+        s+=line([entryPoint[0]+28*Math.cos(mid),entryPoint[1]+28*Math.sin(mid)],[a.label[0],a.label[1]-8],'var(--border)','stroke-width="1"');
+      }
+      s+=text(a.label[0],a.label[1]+4,a.id,`text-anchor="middle" font-style="italic" data-entry-angle-label="${a.id}"`);
+    });
     const angleRadius=32;
     const angleStart=[exitPoint[0]-angleRadius,exitPoint[1]];
     const angleEnd=[exitPoint[0]+angleRadius*ray.outgoing[0],exitPoint[1]+angleRadius*ray.outgoing[1]];
     s+=`<path d="M ${point(angleStart)} A ${angleRadius} ${angleRadius} 0 0 0 ${point(angleEnd)}" fill="none" stroke="${reference.hex}" stroke-width="1.8" data-view-angle="${ray.theta/rad}"/>`;
-    const angleLabelX=Math.max(112,exitPoint[0]-52);
+    const angleLabelX=Math.max(104,exitPoint[0]-52);
     s+=text(angleLabelX,exitPoint[1]+26,'Blickwinkel','text-anchor="end" class="soft tiny"');
     s+=text(angleLabelX,exitPoint[1]+43,`${degrees(ray.theta)} (${reference.name})`,'text-anchor="end" data-angle-label');
     const e=map(ray.entry),back=map(ray.reflection),out=map(ray.exit);
@@ -232,7 +250,7 @@ body { padding:0; }
       const pos=[Math.max(12,Math.min(w-12,p[0]+offset[0])),Math.max(12,p[1]+offset[1])];
       return line(p,pos,'var(--border)')+circle(pos,10,'fill="var(--primary)"')+text(pos[0],pos[1]+4,num,'text-anchor="middle" style="fill:var(--primary-foreground)"');
     };
-    s+=badge(e,'1','',[-20,-22])+badge(back,'2','',[20,-16])+badge(out,'3','',[20,22]);
+    s+=badge(e,'1','',[16,-20])+badge(back,'2','',[20,-16])+badge(out,'3','',[20,22]);
     const y=H-42;
     if(state.dropSecondary) {
       s+=badge(map(trace(reference.n,state.impact,2).exit),'4','',[-18,20]);
@@ -248,15 +266,16 @@ body { padding:0; }
       s+=text(w*.24,y,'1  Zum Lot hin','text-anchor="middle"')+text(w*.58,y,'2  Teilreflexion','text-anchor="middle"')+text(w*.87,y,'3  Vom Lot weg','text-anchor="middle"');
       s+=text(w*.24,y+19,'Luft → Wasser','text-anchor="middle" class="soft tiny"')+text(w*.58,y+19,'an der Rückseite','text-anchor="middle" class="soft tiny"')+text(w*.87,y+19,'Wasser → Luft','text-anchor="middle" class="soft tiny"');
     } else {
-      s+=text(12,340,'1  Eintritt: zum Lot hin')+text(12,360,'2  Rückseite: teilweise gespiegelt')+text(12,380,'3  Austritt: vom Lot weg');
+      s+=text(12,H-45,'1  Eintritt: zum Lot hin')+text(12,H-25,'2  Rückseite: teilweise gespiegelt')+text(12,H-5,'3  Austritt: vom Lot weg');
     }
     svg.innerHTML=s;
     svg.setAttribute('aria-label',state.dropSecondary?'Berechnete Lichtwege mit einer und zwei inneren Reflexionen. An Punkt 3 teilt sich das Licht: Austritt zum Hauptbogen oder zweite Reflexion und Austritt an Punkt 4 zum Nebenbogen.':'Berechneter Lichtweg: Brechung beim Eintritt, Teilreflexion an der Rückseite, Brechung beim Austritt.');
     svg.setAttribute('aria-label',svg.getAttribute('aria-label')+` Der Winkelbogen an Punkt 3 zeigt den Blickwinkel von ${degrees(ray.theta)} für ${reference.name}, gemessen zwischen Rückrichtung und austretendem Strahl.`);
+    svg.setAttribute('aria-label',svg.getAttribute('aria-label')+` Am Eintritt: i ist der Einfallswinkel von ${degrees(i)} zum äußeren Lot, r der Brechungswinkel von ${degrees(r)} zum inneren Lot für ${reference.name}.`);
     $('drop-title').textContent=state.dropSecondary?'Eine oder zwei Reflexionen im Tropfen':'Zweimal gebrochen, einmal gespiegelt';
     $('secondary-legend').hidden=!state.dropSecondary;
     $('impact-value').textContent=Math.round(state.impact*100)+' % Radius';
-    const i=Math.asin(state.impact),r=Math.asin(state.impact/reference.n);
+    $('entry-angle-values').textContent=`Eintritt (${reference.name}): i = ${degrees(i)} · r = ${degrees(r)}`;
     $('drop-explanation').innerHTML=state.color==='all'
       ? '<strong>Violett wird stärker gebrochen als Rot.</strong> Im Wasser ist Licht langsamer unterwegs. Diese Änderung der Geschwindigkeit hängt von der Wellenlänge ab – und damit auch die Brechung.'
       : `<strong>${reference.name} im Tropfen:</strong> Einfallswinkel ${degrees(i)}, Brechungswinkel ${degrees(r)} – jeweils zum Lot gemessen.`;
