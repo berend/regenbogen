@@ -75,15 +75,16 @@ body { padding:0; }
   </div>
 
   <section id="panel-drop" role="tabpanel" aria-labelledby="tab-drop">
-    <div class="view-header"><h2>Zweimal gebrochen, einmal gespiegelt</h2><span class="view-tag">Querschnitt durch einen Tropfen</span></div>
+    <div class="view-header"><h2 id="drop-title">Zweimal gebrochen, einmal gespiegelt</h2><span class="view-tag">Querschnitt durch einen Tropfen</span></div>
     <svg id="drop-svg" class="diagram" role="img" aria-label="Berechneter Lichtweg: Brechung beim Eintritt, Teilreflexion an der Rückseite, Brechung beim Austritt."></svg>
     <div class="controls">
       <div class="range-control"><div class="range-top"><label for="impact">Wo trifft das Licht ein?</label><output id="impact-value" for="impact"></output></div><input id="impact" type="range" min="10" max="98" value="86" aria-label="Eintrittshöhe in Prozent des Tropfenradius"></div>
       <div class="control-stack"><label for="wavelength">Lichtfarbe</label><select id="wavelength"><option value="all">Ganzes Spektrum</option><option value="red">Rot</option><option value="green">Grün</option><option value="violet">Violett</option></select></div>
       <label class="check"><input id="normals" type="checkbox" checked> Lote</label>
+      <label class="check"><input id="drop-secondary" type="checkbox"> Nebenbogen: 2 Reflexionen</label>
       <button id="animate" type="button" aria-pressed="false">Licht verfolgen</button>
     </div>
-    <div class="legend"><span><i class="swatch" style="background:var(--sun)"></i>Sonnenlicht →</span><span><i class="swatch dashed"></i>Lot = senkrecht zur Oberfläche</span></div>
+    <div class="legend"><span><i class="swatch" style="background:var(--sun)"></i>Sonnenlicht →</span><span><i class="swatch dashed"></i>Lot = senkrecht zur Oberfläche</span><span id="secondary-legend" hidden><i class="swatch dashed" style="border-top-width:2px"></i>Gestrichelter Farbverlauf: Nebenbogen</span></div>
     <div class="note" aria-live="polite"><p id="drop-explanation"></p><p id="drop-detail"></p></div>
   </section>
 
@@ -98,7 +99,7 @@ body { padding:0; }
     <div class="space-tools"><label for="space-camera">Perspektive</label><select id="space-camera"><option value="left">Schräg von links</option><option value="right">Schräg von rechts</option><option value="top">Von oben</option><option value="eye">Aus deinem Auge</option></select><span class="view-tag" id="space-hint">Im Bild ziehen zum Drehen</span></div>
     <div class="note" aria-live="polite"><p id="space-explanation"></p><p id="space-detail"></p></div>
   </section>
-  <details><summary>Was das Modell zeigt · Quellen</summary><p>Das Tropfenmodell berechnet Strahlen mit dem Snelliusschen Brechungsgesetz und dem Reflexionsgesetz. Es zeigt den Weg mit einer inneren Reflexion; an jeder Grenzfläche gibt es weitere reflektierte und durchgelassene Anteile. Die Reflexion des Hauptbogens ist eine Teilreflexion, keine Totalreflexion.</p><p>Verwendet werden kugelförmige Wassertropfen und gerundete Brechungsindizes von n ≈ 1,331 (Rot) bis 1,3435 (Violett). Die Winkel beziehen sich auf den Sonnengegenpunkt. Die Himmelsansicht verwendet eine stereografische Projektion und passt den Maßstab an den sichtbaren Ausschnitt an. Der Winkelradius bleibt dabei gleich. Die Tropfen in der zweiten Ansicht sind zur Erkennbarkeit vergrößert. Helligkeiten, Beugung, Polarisation und die Überlagerung aller Strahlen werden nicht simuliert.</p><p>In 3D wird der Kegelmantel aus Richtungen mit dem berechneten roten Regenbogenwinkel konstruiert und perspektivisch projiziert. Der farbige Ring liegt zur Veranschaulichung in einer gewählten Entfernung; echte beitragende Tropfen können überall entlang dieser Richtungen liegen. Die Horizontebene geht durch das Auge und trennt obere und untere Blickrichtungen. Sie stellt keine Wand oder tatsächliche Regenschicht dar. Die Ansicht aus dem Auge zeigt Blickrichtungen stereografisch.</p><p>Hintergrund: <a href="https://weather.metoffice.gov.uk/learn-about/weather/optical-effects/rainbows" target="_blank" rel="noopener">Met Office: Rainbows</a> · <a href="https://www.hyperphysics.phy-astr.gsu.edu/hbase/atmos/rbowpri.html" target="_blank" rel="noopener">Georgia State University: Primary Rainbow</a> · <a href="https://www.eoas.ubc.ca/books/Practical_Meteorology/" target="_blank" rel="noopener">UBC: Practical Meteorology</a></p></details>
+  <details><summary>Was das Modell zeigt · Quellen</summary><p>Das Tropfenmodell berechnet Strahlen mit dem Snelliusschen Brechungsgesetz und dem Reflexionsgesetz. Es zeigt den Weg mit einer inneren Reflexion und auf Wunsch zusätzlich den Weg mit zwei inneren Reflexionen. Beide Wege teilen sich den Eintritt und die erste Reflexion; an der nächsten Grenzfläche tritt ein Anteil aus und ein anderer wird nochmals reflektiert. An jeder Grenzfläche gibt es weitere reflektierte und durchgelassene Anteile. Die inneren Reflexionen sind Teilreflexionen, keine Totalreflexionen.</p><p>Verwendet werden kugelförmige Wassertropfen und gerundete Brechungsindizes von n ≈ 1,331 (Rot) bis 1,3435 (Violett). Die Winkel beziehen sich auf den Sonnengegenpunkt. Die Himmelsansicht verwendet eine stereografische Projektion und passt den Maßstab an den sichtbaren Ausschnitt an. Der Winkelradius bleibt dabei gleich. Die Tropfen in der zweiten Ansicht sind zur Erkennbarkeit vergrößert. Helligkeiten, Beugung, Polarisation und die Überlagerung aller Strahlen werden nicht simuliert.</p><p>In 3D wird der Kegelmantel aus Richtungen mit dem berechneten roten Regenbogenwinkel konstruiert und perspektivisch projiziert. Der farbige Ring liegt zur Veranschaulichung in einer gewählten Entfernung; echte beitragende Tropfen können überall entlang dieser Richtungen liegen. Die Horizontebene geht durch das Auge und trennt obere und untere Blickrichtungen. Sie stellt keine Wand oder tatsächliche Regenschicht dar. Die Ansicht aus dem Auge zeigt Blickrichtungen stereografisch.</p><p>Hintergrund: <a href="https://weather.metoffice.gov.uk/learn-about/weather/optical-effects/rainbows" target="_blank" rel="noopener">Met Office: Rainbows</a> · <a href="https://www.hyperphysics.phy-astr.gsu.edu/hbase/atmos/rbowpri.html" target="_blank" rel="noopener">Georgia State University: Primary Rainbow</a> · <a href="https://www.eoas.ubc.ca/books/Practical_Meteorology/" target="_blank" rel="noopener">UBC: Practical Meteorology</a></p></details>
 </main>
 <script>
 (() => {
@@ -113,7 +114,7 @@ body { padding:0; }
     {id:'blue',name:'Blau',hex:'#479fec',n:1.340},
     {id:'violet',name:'Violett',hex:'#a17af5',n:1.3435}
   ];
-  const state = {view:root.dataset.start || 'space',impact:.86,color:'all',normals:true,animate:false,eye:'all',sun:12,full:false,secondary:false,spaceStep:3,sweep:360,arcPosition:.5,camera:'left',yaw:-55,pitch:22};
+  const state = {view:root.dataset.start || 'space',impact:.86,color:'all',normals:true,dropSecondary:false,animate:false,eye:'all',sun:12,full:false,secondary:false,spaceStep:3,sweep:360,arcPosition:.5,camera:'left',yaw:-55,pitch:22};
   const degrees = n => (n / rad).toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1}) + '°';
   const point = p => p.map(v => v.toFixed(2)).join(',');
   const line = (a,b,stroke,extra='') => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${stroke}" ${extra}/>`;
@@ -135,15 +136,19 @@ body { padding:0; }
     const t = -2*(p[0]*v[0]+p[1]*v[1]);
     return [p[0]+t*v[0],p[1]+t*v[1]];
   }
-  function trace(n,b) {
+  function trace(n,b,order=1) {
     const entry = [-Math.sqrt(1-b*b),-b];
-    const inside = refract([1,0],entry,1/n);
-    const reflection = nextSurface(entry,inside);
-    const dot = inside[0]*reflection[0]+inside[1]*reflection[1];
-    const reflected = [inside[0]-2*dot*reflection[0],inside[1]-2*dot*reflection[1]];
-    const exit = nextSurface(reflection,reflected);
-    const outgoing = refract(reflected,[-exit[0],-exit[1]],n);
-    return {entry,reflection,exit,outgoing,theta:Math.atan2(outgoing[1],-outgoing[0])};
+    let direction = refract([1,0],entry,1/n),surface=entry;
+    const reflections=[];
+    for(let i=0;i<order;i++) {
+      surface=nextSurface(surface,direction);
+      reflections.push(surface);
+      const dot=direction[0]*surface[0]+direction[1]*surface[1];
+      direction=[direction[0]-2*dot*surface[0],direction[1]-2*dot*surface[1]];
+    }
+    const exit = nextSurface(surface,direction);
+    const outgoing = refract(direction,[-exit[0],-exit[1]],n);
+    return {entry,reflection:reflections[0],reflections,exit,outgoing,theta:Math.acos(Math.max(-1,Math.min(1,-outgoing[0])))};
   }
   function rainbowAngle(n,order=1) {
     const q = order+1;
@@ -158,8 +163,8 @@ body { padding:0; }
     return width;
   }
   function drawDrop() {
-    const svg = $('drop-svg'),w=dimensions(svg,385),small=w<480;
-    const radius=small?80:98,c=[w*.58,122];
+    const svg = $('drop-svg'),H=state.dropSecondary?465:385,w=dimensions(svg,H),small=w<480;
+    const radius=small?80:98,c=[w*.58,state.dropSecondary?174:122];
     const map = p => [c[0]+p[0]*radius,c[1]+p[1]*radius];
     const reference = colors.find(d => d.id===state.color) || colors[0];
     const ray = trace(reference.n,state.impact);
@@ -183,10 +188,10 @@ body { padding:0; }
     s += text(16,Math.max(21,incomingY-13),'Sonnenlicht','class="soft"');
     selected.forEach((col,index)=>{
       const r=trace(col.n,state.impact),e=map(r.entry),back=map(r.reflection),out=map(r.exit);
-      const travel=Math.min((18-out[0])/r.outgoing[0],(304-out[1])/r.outgoing[1]);
+      const travel=Math.min((18-out[0])/r.outgoing[0],(H-(state.dropSecondary&&small?108:81)-out[1])/r.outgoing[1]);
       const end=[out[0]+travel*r.outgoing[0],out[1]+travel*r.outgoing[1]];
       const path=`M ${point(e)} L ${point(back)} L ${point(out)} L ${point(end)}`;
-      s+=`<path d="${path}" stroke="${col.hex}" stroke-width="${selected.length===1?2.8:1.8}" opacity=".9" class="ray"/>`;
+      s+=`<path d="${path}" stroke="${col.hex}" stroke-width="${selected.length===1?2.8:1.8}" opacity=".9" class="ray" data-ray-order="1"/>`;
       const mid=[out[0]+.63*(end[0]-out[0]),out[1]+.63*(end[1]-out[1])];
       s+=arrow([mid[0]-r.outgoing[0]*9,mid[1]-r.outgoing[1]*9],mid,col.hex,1.7);
       if(state.animate) {
@@ -194,6 +199,26 @@ body { padding:0; }
       }
       if(index===0) s+=text(Math.max(104,end[0]-10),end[1]+15,`${col.name} ${degrees(r.theta)}`,'class="tiny" text-anchor="end"');
       if(index===selected.length-1 && selected.length>1) s+=text(Math.min(w-104,end[0]+10),end[1]-2,`${col.name} ${degrees(r.theta)}`,'class="tiny"');
+      if(state.dropSecondary) {
+        const secondary=trace(col.n,state.impact,2),branch=map(secondary.reflections[1]),exit=map(secondary.exit),d=secondary.outgoing;
+        // First positive intersection of the outgoing ray with the diagram bounds.
+        const tx=(d[0]<0?18-exit[0]:w-18-exit[0])/d[0];
+        const ty=(d[1]<0?28-exit[1]:H-81-exit[1])/d[1];
+        const distance=Math.min(tx,ty),tip=[exit[0]+distance*d[0],exit[1]+distance*d[1]];
+        const continuation=`M ${point(branch)} L ${point(exit)} L ${point(tip)}`;
+        s+=`<path d="${continuation}" stroke="${col.hex}" stroke-width="${selected.length===1?2.5:1.7}" stroke-dasharray="6 4" opacity=".72" class="ray" data-ray-order="2"/>`;
+        const mid=[exit[0]+.6*(tip[0]-exit[0]),exit[1]+.6*(tip[1]-exit[1])];
+        s+=arrow([mid[0]-d[0]*9,mid[1]-d[1]*9],mid,col.hex,1.5,.8);
+        if(state.normals&&index===0)s+=line(map(secondary.exit.map(v=>v*.65)),map(secondary.exit.map(v=>v*1.2)),'var(--muted-foreground)','class="normal"');
+        if(state.animate) {
+          const points=[start,e,back,branch,exit,tip];
+          const length=ps=>ps.slice(1).reduce((sum,p,j)=>sum+Math.hypot(p[0]-ps[j][0],p[1]-ps[j][1]),0);
+          const duration=3.8*length(points)/length([start,e,back,out,end]);
+          s+=`<circle r="2.5" fill="${col.hex}" class="photon"><animateMotion dur="${duration.toFixed(3)}s" repeatCount="indefinite" path="M ${points.map(point).join(' L ')}"/></circle>`;
+        }
+        if(index===0)s+=text(w-18,52,`Nebenbogen · ${col.name} ${degrees(secondary.theta)}`,'class="tiny" text-anchor="end"');
+        if(index===selected.length-1&&selected.length>1)s+=text(w-18,70,`${col.name} ${degrees(secondary.theta)}`,'class="tiny" text-anchor="end"');
+      }
     });
     const e=map(ray.entry),back=map(ray.reflection),out=map(ray.exit);
     const badge=(p,num,anchor,offset)=>{
@@ -201,14 +226,27 @@ body { padding:0; }
       return line(p,pos,'var(--border)')+circle(pos,10,'fill="var(--primary)"')+text(pos[0],pos[1]+4,num,'text-anchor="middle" style="fill:var(--primary-foreground)"');
     };
     s+=badge(e,'1','',[-20,-22])+badge(back,'2','',[20,-16])+badge(out,'3','',[20,22]);
-    const y=343;
-    if(!small) {
+    const y=H-42;
+    if(state.dropSecondary) {
+      s+=badge(map(trace(reference.n,state.impact,2).exit),'4','',[-18,20]);
+      if(small) {
+        s+=text(12,H-75,'1  Eintritt: erste Brechung')+text(12,H-55,'2  Erste innere Reflexion')+text(12,H-35,'3  Austritt oder zweite Reflexion')+text(12,H-15,'4  Austritt: zweite Brechung');
+      } else {
+        ['1  Eintritt','2  Erste Reflexion','3  Aufteilung','4  Austritt'].forEach((label,j)=>{
+          s+=text(w*(j+.5)/4,y,label,'text-anchor="middle"');
+          s+=text(w*(j+.5)/4,y+19,['erste Brechung','beide Wege gemeinsam','Austritt oder Reflexion','zum Nebenbogen'][j],'text-anchor="middle" class="soft tiny"');
+        });
+      }
+    } else if(!small) {
       s+=text(w*.24,y,'1  Zum Lot hin','text-anchor="middle"')+text(w*.58,y,'2  Teilreflexion','text-anchor="middle"')+text(w*.87,y,'3  Vom Lot weg','text-anchor="middle"');
       s+=text(w*.24,y+19,'Luft → Wasser','text-anchor="middle" class="soft tiny"')+text(w*.58,y+19,'an der Rückseite','text-anchor="middle" class="soft tiny"')+text(w*.87,y+19,'Wasser → Luft','text-anchor="middle" class="soft tiny"');
     } else {
       s+=text(12,340,'1  Eintritt: zum Lot hin')+text(12,360,'2  Rückseite: teilweise gespiegelt')+text(12,380,'3  Austritt: vom Lot weg');
     }
     svg.innerHTML=s;
+    svg.setAttribute('aria-label',state.dropSecondary?'Berechnete Lichtwege mit einer und zwei inneren Reflexionen. An Punkt 3 teilt sich das Licht: Austritt zum Hauptbogen oder zweite Reflexion und Austritt an Punkt 4 zum Nebenbogen.':'Berechneter Lichtweg: Brechung beim Eintritt, Teilreflexion an der Rückseite, Brechung beim Austritt.');
+    $('drop-title').textContent=state.dropSecondary?'Eine oder zwei Reflexionen im Tropfen':'Zweimal gebrochen, einmal gespiegelt';
+    $('secondary-legend').hidden=!state.dropSecondary;
     $('impact-value').textContent=Math.round(state.impact*100)+' % Radius';
     const i=Math.asin(state.impact),r=Math.asin(state.impact/reference.n);
     $('drop-explanation').innerHTML=state.color==='all'
@@ -217,6 +255,10 @@ body { padding:0; }
     $('drop-detail').textContent=state.impact>.82&&state.impact<.90
       ? 'Hier liegt der Regenbogenbereich: Viele benachbarte Eintrittsstrahlen verlassen den Tropfen in fast der gleichen Richtung. Dort konzentriert sich das Licht.'
       : 'Auch andere Eintrittshöhen lenken Licht zurück. Der helle Hauptbogen entsteht nahe 86 % des Radius, wo sich besonders viele Strahlrichtungen bündeln.';
+    if(state.dropSecondary) {
+      $('drop-explanation').innerHTML='<strong>An Punkt 3 teilt sich das Licht.</strong> Ein Anteil tritt zum Hauptbogen aus. Ein anderer wird ein zweites Mal reflektiert und verlässt den Tropfen erst an Punkt 4. Der zusätzliche Weg ist gestrichelt.';
+      $('drop-detail').textContent='Die angezeigten Winkel gelten für die gewählte Eintrittshöhe. Der helle Nebenbogen entsteht nahe 95 % des Radius. Sein Farbfächer hat die umgekehrte Reihenfolge. Die Helligkeiten sind schematisch.';
+    }
   }
   function visibleArc(sunDegrees,theta) {
     if(sunDegrees*rad>=theta)return {start:Math.PI/2,end:Math.PI/2,span:0};
@@ -375,7 +417,7 @@ body { padding:0; }
 
   const draw=()=>state.view==='drop'?drawDrop():drawSpace();
   function save() {
-    window.openai?.setWidgetState?.({modelContent:{ansicht:state.view,sonnenhoehe:state.sun,bogenposition:state.arcPosition,kamera:state.camera},privateContent:{...state,animate:false}})?.catch(()=>{});
+    window.openai?.setWidgetState?.({modelContent:{ansicht:state.view,sonnenhoehe:state.sun,bogenposition:state.arcPosition,kamera:state.camera,nebenbogenImTropfen:state.dropSecondary},privateContent:{...state,animate:false}})?.catch(()=>{});
   }
   function changeView(view,updateHash=false) {
     state.view=view==='drop'?'drop':'space';
@@ -398,7 +440,8 @@ body { padding:0; }
     if(Number.isFinite(s.yaw))state.yaw=s.yaw;
     if(Number.isFinite(s.pitch))state.pitch=Math.max(-15,Math.min(75,s.pitch));
     if(typeof s.normals==='boolean')state.normals=s.normals;
-    $('impact').value=state.impact*100;$('wavelength').value=state.color;$('normals').checked=state.normals;
+    if(typeof s.dropSecondary==='boolean')state.dropSecondary=s.dropSecondary;
+    $('impact').value=state.impact*100;$('wavelength').value=state.color;$('normals').checked=state.normals;$('drop-secondary').checked=state.dropSecondary;
     $('space-sun').value=state.sun;$('space-sweep').value=state.arcPosition*1000;$('space-camera').value=state.camera;
   }
   root.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',()=>{changeView(el.dataset.view,true);save();}));
@@ -406,6 +449,7 @@ body { padding:0; }
   $('impact').addEventListener('change',save);
   $('wavelength').addEventListener('change',e=>{state.color=e.target.value;drawDrop();save();});
   $('normals').addEventListener('change',e=>{state.normals=e.target.checked;drawDrop();save();});
+  $('drop-secondary').addEventListener('change',e=>{state.dropSecondary=e.target.checked;drawDrop();save();});
   $('animate').addEventListener('click',()=>{state.animate=!state.animate;$('animate').setAttribute('aria-pressed',String(state.animate));$('animate').textContent=state.animate?'Animation anhalten':'Licht verfolgen';drawDrop();});
   $('space-sweep').addEventListener('input',e=>{state.arcPosition=Number(e.target.value)/1000;drawSpace();});
   $('space-sweep').addEventListener('change',save);
