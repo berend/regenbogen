@@ -55,6 +55,9 @@
   details { margin-top:20px; border-top:1px solid var(--border); padding-top:12px; color:var(--muted-foreground); font-size:12px; }
   summary { cursor:pointer; color:var(--foreground); }
   details p { margin-top:8px !important; }
+  #snellius-explanation { color:var(--foreground); font-size:14px; }
+  #snellius-explanation ol { padding-left:22px; }
+  #snellius-explanation li + li { margin-top:16px; }
   a { color:inherit; text-underline-offset:3px; }
   [hidden] { display:none !important; }
   @media(max-width:480px) { #rainbow-lab h1 { font-size:21px; } .tabs button { padding:8px 6px; text-align:center; } .tab-number { display:block; margin:0; } .view-header { display:block; } .view-tag { display:block; margin-top:2px; } .controls { gap:12px; } .note { min-height:110px; } }
@@ -86,6 +89,38 @@ body { padding:0; }
     </div>
     <div class="legend"><span><i class="swatch" style="background:var(--sun)"></i>Sonnenlicht →</span><span><i class="swatch dashed"></i>Lot = senkrecht zur Oberfläche</span><span id="entry-angle-values"></span><span id="secondary-legend" hidden><i class="swatch dashed" style="border-top-width:2px"></i>Gestrichelter Farbverlauf: Nebenbogen</span></div>
     <div class="note" aria-live="polite"><p id="drop-explanation"></p><p id="drop-detail"></p></div>
+    <details id="snellius-explanation">
+      <summary>Snellius: Warum liegt der Hauptbogen bei etwa 42°?</summary>
+      <p>Wir betrachten den <strong>Hauptbogen mit einer inneren Reflexion</strong>. i ist der Einfallswinkel, r der Brechungswinkel – beide zum Lot gemessen. n ist der Brechungsindex von Wasser relativ zur Luft und hängt von der Lichtfarbe ab.</p>
+      <ol>
+        <li><strong>Brechung nach Snellius.</strong> Für jeden Eintrittswinkel i ergibt sich r aus:
+          <p>sin(i) = n · sin(r)<br>r = arcsin(sin(i) / n)</p>
+          <p>Wenn i sich ändert, ändert sich auch r. Ableiten nach i ergibt mit der Kettenregel:</p>
+          <p>cos(i) = n · cos(r) · (dr/di)<br>dr/di = cos(i) / (n · cos(r))</p>
+          <p>dr/di beschreibt, wie stark sich r bei einer kleinen Änderung von i mitändert.</p>
+        </li>
+        <li><strong>Die gesamte Ablenkung D.</strong> Die beiden Brechungen tragen jeweils i − r bei, die innere Reflexion 180° − 2r:
+          <p>D = 2 · (i − r) + (180° − 2r)<br>D = 180° + 2i − 4r</p>
+          <p>D misst die Richtungsänderung gegenüber dem einfallenden Licht. Der im Schaubild markierte Blickwinkel θ wird zur Rückrichtung gemessen:</p>
+          <p>θ = 180° − D = 4r − 2i</p>
+        </li>
+        <li><strong>Am Regenbogenrand ist D minimal.</strong> Dort ändert sich die Austrittsrichtung bei kleinen Änderungen von i zunächst kaum. Viele benachbarte Eintrittsstrahlen verlassen den Tropfen deshalb in fast derselben Richtung; dort bündelt sich das Licht.
+          <p>dD/di = 0<br>2 − 4 · (dr/di) = 0<br>dr/di = ½</p>
+          <p>Ein Minimum von D bedeutet ein Maximum des Blickwinkels θ.</p>
+        </li>
+        <li><strong>Snellius einsetzen.</strong> Wir setzen die Ableitung aus Schritt 1 in die Bedingung für das Minimum ein:
+          <p>2 − 4 · cos(i) / (n · cos(r)) = 0<br>2 · cos(i) = n · cos(r)</p>
+          <p>Zusammen müssen also diese beiden Gleichungen gelten:</p>
+          <p>sin(i) = n · sin(r)<br>2 · cos(i) = n · cos(r)</p>
+        </li>
+        <li><strong>Numerisch lösen.</strong> Für einen Versuchswert von i berechnen wir zuerst r nach Snellius und prüfen dann:
+          <p>f(i) = 2 · cos(i) − n · cos(r)</p>
+          <p>Wir suchen f(i) = 0 zwischen 0° und 90°. Mit dem Halbierungsverfahren teilen wir das Intervall wiederholt und behalten jeweils die Hälfte, in der f das Vorzeichen wechselt. So finden wir den Eintrittswinkel am Minimum.</p>
+          <p id="snellius-result" aria-live="polite"></p>
+        </li>
+      </ol>
+      <p>Die Werte am Minimum hängen von der Lichtfarbe ab. Der Regler zeigt dagegen auch Eintrittsstrahlen außerhalb dieses Minimums. Bei „Ganzes Spektrum“ verwendet die Rechnung Rot als Beispiel. Für den Nebenbogen mit zwei inneren Reflexionen gilt eine andere Ablenkungsformel.</p>
+    </details>
   </section>
 
 
@@ -156,6 +191,16 @@ body { padding:0; }
     const b = Math.sqrt((q*q-n*n)/(q*q-1));
     const i = Math.asin(b),r = Math.asin(b/n);
     return order === 1 ? 4*r-2*i : Math.PI+2*i-6*r;
+  }
+  function primaryRainbowMinimum(n) {
+    let low=0,high=Math.PI/2;
+    for(let step=0;step<50;step++) {
+      const i=(low+high)/2,r=Math.asin(Math.sin(i)/n);
+      if(2*Math.cos(i)-n*Math.cos(r)>0)low=i;
+      else high=i;
+    }
+    const i=(low+high)/2,r=Math.asin(Math.sin(i)/n),D=Math.PI+2*i-4*r;
+    return {i,r,D,theta:Math.PI-D,impact:Math.sin(i)};
   }
   function dimensions(svg,height) {
     const width = Math.max(280,Math.round(root.getBoundingClientRect().width));
@@ -299,6 +344,8 @@ body { padding:0; }
     $('secondary-legend').hidden=!state.dropSecondary;
     $('impact-value').textContent=Math.round(state.impact*100)+' % Radius';
     $('entry-angle-values').textContent=`Eintritt (${reference.name}): i = ${degrees(i)} · r = ${degrees(r)}`;
+    const minimum=primaryRainbowMinimum(reference.n);
+    $('snellius-result').textContent=`Ergebnis für ${reference.name} (n = ${reference.n.toLocaleString('de-DE',{maximumFractionDigits:4})}): i ≈ ${degrees(minimum.i)}, r ≈ ${degrees(minimum.r)}. Damit ist D minimal bei ${degrees(minimum.D)} und der Blickwinkel θ maximal bei ${degrees(minimum.theta)}. Die zugehörige Eintrittshöhe beträgt ${(100*minimum.impact).toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1})} % des Radius.`;
     $('drop-explanation').innerHTML=state.color==='all'
       ? '<strong>Violett wird stärker gebrochen als Rot.</strong> Im Wasser ist Licht langsamer unterwegs. Diese Änderung der Geschwindigkeit hängt von der Wellenlänge ab – und damit auch die Brechung.'
       : `<strong>${reference.name} im Tropfen:</strong> Einfallswinkel ${degrees(i)}, Brechungswinkel ${degrees(r)} – jeweils zum Lot gemessen.`;
