@@ -95,11 +95,12 @@ body { padding:0; }
     <div class="controls">
       <div class="range-control" id="space-sweep-control"><div class="range-top"><label for="space-sweep">Um die Achse herum</label><output id="space-sweep-value" for="space-sweep"></output></div><input id="space-sweep" type="range" min="0" max="1000" value="500" step="1"></div>
       <div class="range-control"><div class="range-top"><label for="space-sun">Sonnenhöhe</label><output id="space-sun-value" for="space-sun">12°</output></div><input id="space-sun" type="range" min="0" max="55" value="12"></div>
+      <div class="control-stack"><label for="space-wavelength">Lichtfarbe</label><select id="space-wavelength"><option value="all">Ganzes Spektrum</option><option value="red">Rot</option><option value="green">Grün</option><option value="violet">Violett</option></select></div>
     </div>
     <div class="space-tools"><label for="space-camera">Perspektive</label><select id="space-camera"><option value="left">Schräg von links</option><option value="right">Schräg von rechts</option><option value="top">Von oben</option><option value="eye">Aus deinem Auge</option></select><span class="view-tag" id="space-hint">Im Bild ziehen zum Drehen</span></div>
     <div class="note" aria-live="polite"><p id="space-explanation"></p><p id="space-detail"></p></div>
   </section>
-  <details><summary>Was das Modell zeigt · Quellen</summary><p>Das Tropfenmodell berechnet Strahlen mit dem Snelliusschen Brechungsgesetz und dem Reflexionsgesetz. Es zeigt den Weg mit einer inneren Reflexion und auf Wunsch zusätzlich den Weg mit zwei inneren Reflexionen. Beide Wege teilen sich den Eintritt und die erste Reflexion; an der nächsten Grenzfläche tritt ein Anteil aus und ein anderer wird nochmals reflektiert. An jeder Grenzfläche gibt es weitere reflektierte und durchgelassene Anteile. Die inneren Reflexionen sind Teilreflexionen, keine Totalreflexionen.</p><p>Verwendet werden kugelförmige Wassertropfen und gerundete Brechungsindizes von n ≈ 1,331 (Rot) bis 1,3435 (Violett). Die Winkel beziehen sich auf den Sonnengegenpunkt. Die Himmelsansicht verwendet eine stereografische Projektion und passt den Maßstab an den sichtbaren Ausschnitt an. Der Winkelradius bleibt dabei gleich. Die Tropfen in der zweiten Ansicht sind zur Erkennbarkeit vergrößert. Helligkeiten, Beugung, Polarisation und die Überlagerung aller Strahlen werden nicht simuliert.</p><p>In 3D wird der Kegelmantel aus Richtungen mit dem berechneten roten Regenbogenwinkel konstruiert und perspektivisch projiziert. Der farbige Ring liegt zur Veranschaulichung in einer gewählten Entfernung; echte beitragende Tropfen können überall entlang dieser Richtungen liegen. Die Horizontebene geht durch das Auge und trennt obere und untere Blickrichtungen. Sie stellt keine Wand oder tatsächliche Regenschicht dar. Die Ansicht aus dem Auge zeigt Blickrichtungen stereografisch.</p><p>Hintergrund: <a href="https://weather.metoffice.gov.uk/learn-about/weather/optical-effects/rainbows" target="_blank" rel="noopener">Met Office: Rainbows</a> · <a href="https://www.hyperphysics.phy-astr.gsu.edu/hbase/atmos/rbowpri.html" target="_blank" rel="noopener">Georgia State University: Primary Rainbow</a> · <a href="https://www.eoas.ubc.ca/books/Practical_Meteorology/" target="_blank" rel="noopener">UBC: Practical Meteorology</a></p></details>
+  <details><summary>Was das Modell zeigt · Quellen</summary><p>Das Tropfenmodell berechnet Strahlen mit dem Snelliusschen Brechungsgesetz und dem Reflexionsgesetz. Es zeigt den Weg mit einer inneren Reflexion und auf Wunsch zusätzlich den Weg mit zwei inneren Reflexionen. Beide Wege teilen sich den Eintritt und die erste Reflexion; an der nächsten Grenzfläche tritt ein Anteil aus und ein anderer wird nochmals reflektiert. An jeder Grenzfläche gibt es weitere reflektierte und durchgelassene Anteile. Die inneren Reflexionen sind Teilreflexionen, keine Totalreflexionen.</p><p>Verwendet werden kugelförmige Wassertropfen und gerundete Brechungsindizes von n ≈ 1,331 (Rot) bis 1,3435 (Violett). Die Winkel beziehen sich auf den Sonnengegenpunkt. Die Himmelsansicht verwendet eine stereografische Projektion und passt den Maßstab an den sichtbaren Ausschnitt an. Der Winkelradius bleibt dabei gleich. Die Tropfen in der zweiten Ansicht sind zur Erkennbarkeit vergrößert. Helligkeiten, Beugung, Polarisation und die Überlagerung aller Strahlen werden nicht simuliert.</p><p>In 3D wird der Kegelmantel aus Richtungen mit dem berechneten Regenbogenwinkel der gewählten Farbe konstruiert und perspektivisch projiziert. Der farbige Ring liegt zur Veranschaulichung in einer gewählten Entfernung; echte beitragende Tropfen können überall entlang dieser Richtungen liegen. Die Horizontebene geht durch das Auge und trennt obere und untere Blickrichtungen. Sie stellt keine Wand oder tatsächliche Regenschicht dar. Die Ansicht aus dem Auge zeigt Blickrichtungen stereografisch.</p><p>Hintergrund: <a href="https://weather.metoffice.gov.uk/learn-about/weather/optical-effects/rainbows" target="_blank" rel="noopener">Met Office: Rainbows</a> · <a href="https://www.hyperphysics.phy-astr.gsu.edu/hbase/atmos/rbowpri.html" target="_blank" rel="noopener">Georgia State University: Primary Rainbow</a> · <a href="https://www.eoas.ubc.ca/books/Practical_Meteorology/" target="_blank" rel="noopener">UBC: Practical Meteorology</a></p></details>
 </main>
 <script>
 (() => {
@@ -114,7 +115,7 @@ body { padding:0; }
     {id:'blue',name:'Blau',hex:'#479fec',n:1.340},
     {id:'violet',name:'Violett',hex:'#a17af5',n:1.3435}
   ];
-  const state = {view:root.dataset.start || 'space',impact:.86,color:'all',normals:true,dropSecondary:false,animate:false,eye:'all',sun:12,full:false,secondary:false,spaceStep:3,sweep:360,arcPosition:.5,camera:'left',yaw:-55,pitch:22};
+  const state = {view:root.dataset.start || 'space',impact:.86,color:'all',spaceColor:'all',normals:true,dropSecondary:false,animate:false,eye:'all',sun:12,full:false,secondary:false,spaceStep:3,sweep:360,arcPosition:.5,camera:'left',yaw:-55,pitch:22};
   const degrees = n => (n / rad).toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1}) + '°';
   const point = p => p.map(v => v.toFixed(2)).join(',');
   const line = (a,b,stroke,extra='') => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${stroke}" ${extra}/>`;
@@ -295,7 +296,9 @@ body { padding:0; }
   function drawSpace() {
     const svg=$('space-svg'),H=410,w=dimensions(svg,H),small=w<480;
     const eyeView=state.camera==='eye',cut=state.spaceStep===3;
-    const h=state.sun*rad,theta=rainbowAngle(colors[0].n),L=3.7;
+    const reference=colors.find(col=>col.id===state.spaceColor)||colors[0];
+    const visibleColors=state.spaceColor==='all'?colors:[reference];
+    const h=state.sun*rad,theta=rainbowAngle(reference.n),L=3.7;
     const axis=[0,-Math.sin(h),Math.cos(h)],up=[0,Math.cos(h),Math.sin(h)],E=[0,0,0];
     const add=(a,b)=>a.map((v,i)=>v+b[i]);
     const mul=(a,t)=>a.map(v=>v*t);
@@ -319,7 +322,7 @@ body { padding:0; }
       const q=sub(p,camera),depth=dot(q,forward);
       return [dot(q,right)/depth,-dot(q,camUp)/depth,depth];
     }
-    const fullRing=Array.from({length:120},(_,i)=>at(theta,Math.PI/2+i*Math.PI/60));
+    const fullRing=Array.from({length:120},(_,i)=>at(rainbowAngle(colors[0].n),Math.PI/2+i*Math.PI/60));
     const sun=mul(axis,-1.65),axisEnd=mul(axis,L*1.15);
     const samples=eyeView?fullRing:[...fullRing,E,sun,axisEnd];
     const bounds=samples.map(raw),xs=bounds.map(p=>p[0]),ys=bounds.map(p=>p[1]);
@@ -364,7 +367,7 @@ body { padding:0; }
         s+=line([8,y],[w-8,y],'var(--muted-foreground)','stroke-width="1"');
         s+=text(w-12,y-9,'Horizont','text-anchor="end" class="soft"');
       }
-      if(h>theta)s+=text(w/2,H/2-42,'Hauptbogen unter dem Horizont','text-anchor="middle"');
+      if(h>theta)s+=text(w/2,H/2-42,state.spaceColor==='all'?'Hauptbogen unter dem Horizont':`${reference.name} unter dem Horizont`,'text-anchor="middle"');
     }
     if(!eyeView&&state.spaceStep>1) {
       const faces=[];
@@ -394,12 +397,12 @@ body { padding:0; }
       for(let j=0;j<180;j++) {
         const t0=j/180*Math.PI*2,t1=Math.min(end,(j+1)/180*Math.PI*2);
         if(t0>=end)break;
-        colors.forEach(col=>{
+        visibleColors.forEach(col=>{
           const a=at(rainbowAngle(col.n),Math.PI/2+t0),b=at(rainbowAngle(col.n),Math.PI/2+t1);
           ringParts.push({a,b,col,depth:(project(a)[2]+project(b)[2])/2});
         });
       }
-      ringParts.sort((a,b)=>b.depth-a.depth).forEach(d=>{s+=segment(d.a,d.b,d.col.hex,'stroke-width="1.8" stroke-linecap="round"');});
+      ringParts.sort((a,b)=>b.depth-a.depth).forEach(d=>{s+=segment(d.a,d.b,d.col.hex,`stroke-width="1.8" stroke-linecap="round" data-ring-color="${d.col.id}"`);});
     }
     const phi=selectedPhi,selected=at(theta,phi),visible=limit.span>0;
     if(visible&&Math.abs(selected[1])<1e-9)selected[1]=0;
@@ -409,12 +412,12 @@ body { padding:0; }
     if(visible) {
       if(!eyeView) {
         s+=arrow(flat(sub(selected,mul(axis,1.05))),flat(selected),'var(--sun)',1.8);
-        s+=arrow(flat(selected),flat(E),colors[0].hex,2.5);
+        s+=arrow(flat(selected),flat(E),reference.hex,2.5);
         // A circular angle mark in the plane containing this ray and the cone axis.
         const anglePoints=Array.from({length:21},(_,i)=>at(theta*i/20,phi,.73));
         s+=`<path d="${path(anglePoints)}" fill="none" stroke="var(--foreground)" stroke-width="1.2"/>`;
         const angleLabel=flat(at(theta*.55,phi,1.03));
-        s+=text(angleLabel[0]+8,angleLabel[1]-5,'42°');
+        s+=text(angleLabel[0]+8,angleLabel[1]-5,degrees(theta));
       }
       s+=circle(flat(selected),4.5,'fill="var(--card)" stroke="var(--water)" stroke-width="2"');
     }
@@ -428,23 +431,24 @@ body { padding:0; }
       s+=line([anti[0],anti[1]-5],[anti[0],anti[1]+5],'var(--muted-foreground)');
       s+=text(anti[0],anti[1]+24,'Sonnengegenpunkt','text-anchor="middle" class="soft"');
     }
-    s+=text(12,23,eyeView?'Du blickst selbst in den Regen':state.spaceStep===1?'Ein Blickstrahl mit 42° zur Achse':'Alle diese Strahlen haben denselben Winkel','class="soft"');
+    s+=text(12,23,`${eyeView?'Blick in den Regen · ':''}${reference.name}: ${degrees(theta)} zur Achse`,'class="soft"');
     s+=text(12,H-13,cut?'Blickrichtungen unter dem Horizont ausgeblendet':state.spaceStep===1?'Die Achse zeigt von der Sonne weg.':small?'Kegel = gedachte Hilfe · Ring = Richtungen':'Kegel = gedachte Hilfe · der Ring ist keine feste Wand aus Tropfen','class="soft tiny"');
     svg.innerHTML=s;
+    svg.setAttribute('aria-label',`Drehbares räumliches Modell ${state.spaceColor==='all'?'mit dem ganzen Spektrum':'für '+reference.name}. Der Kegelmantel und der markierte Strahl zeigen den Blickwinkel von ${degrees(theta)} für ${reference.name}. Der Regler bewegt den Strahl nur oberhalb des Horizonts.`);
     $('space-sweep-value').textContent=limit.span>0?degrees(limit.span*state.arcPosition)+' / '+degrees(limit.span):'Kein sichtbarer Bogen';
     $('space-sweep').disabled=limit.span===0;
     $('space-sweep').setAttribute('aria-valuetext',limit.span>0?degrees(limit.span*state.arcPosition)+' von '+degrees(limit.span)+' oberhalb des Horizonts':'Kein Hauptbogen über dem Horizont');$('space-sun-value').textContent=state.sun+'°';
     $('space-sweep-control').hidden=state.spaceStep===1;
     $('space-hint').textContent=eyeView?'Deine Blickrichtung: von der Sonne weg':'Im Bild ziehen zum Drehen';
     $('space-explanation').innerHTML=limit.span>0
-      ? '<strong>Der Winkel zur Achse bleibt etwa 42°.</strong> Der Regler bewegt den roten Lichtstrahl ausschließlich zwischen den beiden Horizontpunkten. Der ganze sichtbare Bogen bleibt stehen.'
-      : '<strong>Der Hauptbogen liegt unter dem Horizont.</strong> Senke die Sonnenhöhe, um ihn wieder über dem Horizont zu sehen.';
-    $('space-detail').textContent='Die Gradzahl am Regler zählt die Drehung um die Achse ab dem ersten Horizontpunkt. Sie ist ein anderer Winkel als die konstanten 42° zwischen Achse und Lichtstrahl.';
+      ? `<strong>Der Blickwinkel für ${reference.name} bleibt ${degrees(theta)}.</strong> Der Regler bewegt den markierten Lichtstrahl ausschließlich zwischen den beiden Horizontpunkten. Der ganze sichtbare Bogen bleibt stehen.`
+      : `<strong>${state.spaceColor==='all'?'Der Hauptbogen':'Der gewählte Farbbereich'} liegt unter dem Horizont.</strong> Senke die Sonnenhöhe, um ihn wieder über dem Horizont zu sehen.`;
+    $('space-detail').textContent=`${state.spaceColor==='all'?'Im ganzen Spektrum ist der rote Rand markiert. ':''}Die Gradzahl am Regler zählt die Drehung um die Achse ab dem ersten Horizontpunkt. Sie ist ein anderer Winkel als die ${degrees(theta)} zwischen Achse und Lichtstrahl.`;
   }
 
   const draw=()=>state.view==='drop'?drawDrop():drawSpace();
   function save() {
-    window.openai?.setWidgetState?.({modelContent:{ansicht:state.view,sonnenhoehe:state.sun,bogenposition:state.arcPosition,kamera:state.camera,nebenbogenImTropfen:state.dropSecondary},privateContent:{...state,animate:false}})?.catch(()=>{});
+    window.openai?.setWidgetState?.({modelContent:{ansicht:state.view,sonnenhoehe:state.sun,bogenposition:state.arcPosition,kamera:state.camera,nebenbogenImTropfen:state.dropSecondary,lichtfarbeImRaum:state.spaceColor},privateContent:{...state,animate:false}})?.catch(()=>{});
   }
   function changeView(view,updateHash=false) {
     state.view=view==='drop'?'drop':'space';
@@ -460,6 +464,7 @@ body { padding:0; }
     if(!s)return;
     if(['drop','space'].includes(s.view))state.view=s.view;
     if(['all','red','green','violet'].includes(s.color))state.color=s.color;
+    if(['all','red','green','violet'].includes(s.spaceColor))state.spaceColor=s.spaceColor;
     if(Number.isFinite(s.impact))state.impact=Math.max(.1,Math.min(.98,s.impact));
     if(Number.isFinite(s.sun))state.sun=Math.max(0,Math.min(55,s.sun));
     if(Number.isFinite(s.arcPosition))state.arcPosition=Math.max(0,Math.min(1,s.arcPosition));
@@ -469,7 +474,7 @@ body { padding:0; }
     if(typeof s.normals==='boolean')state.normals=s.normals;
     if(typeof s.dropSecondary==='boolean')state.dropSecondary=s.dropSecondary;
     $('impact').value=state.impact*100;$('wavelength').value=state.color;$('normals').checked=state.normals;$('drop-secondary').checked=state.dropSecondary;
-    $('space-sun').value=state.sun;$('space-sweep').value=state.arcPosition*1000;$('space-camera').value=state.camera;
+    $('space-sun').value=state.sun;$('space-sweep').value=state.arcPosition*1000;$('space-camera').value=state.camera;$('space-wavelength').value=state.spaceColor;
   }
   root.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',()=>{changeView(el.dataset.view,true);save();}));
   $('impact').addEventListener('input',e=>{state.impact=Number(e.target.value)/100;drawDrop();});
@@ -482,6 +487,7 @@ body { padding:0; }
   $('space-sweep').addEventListener('change',save);
   $('space-sun').addEventListener('input',e=>{state.sun=Number(e.target.value);drawSpace();});
   $('space-sun').addEventListener('change',save);
+  $('space-wavelength').addEventListener('change',e=>{state.spaceColor=e.target.value;drawSpace();save();});
   $('space-camera').addEventListener('change',e=>{
     state.camera=e.target.value;
     const pose={left:[-55,22],right:[55,22],top:[-25,65]}[state.camera];
